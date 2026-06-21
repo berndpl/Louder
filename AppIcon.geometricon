@@ -1,0 +1,30 @@
+{
+  "backgroundHex" : "#FFFAFA",
+  "backgroundLayer" : "dotted",
+  "cloneOpacityVariation" : 0.55,
+  "cloneScale" : 1.75,
+  "cloneScaleVariation" : 0,
+  "cornerRadius" : 2,
+  "cornerRadiusVariation" : 0,
+  "createdAt" : "2026-06-12T08:16:54Z",
+  "customShapePathData" : "M8.00 33.36 L8.60 32.20 L9.61 31.46 L10.23 31.32 L10.53 31.32 L10.68 31.71 L10.92 32.63 L11.44 33.77 L11.99 34.62 L12.50 34.94 L13.06 35.10 L14.07 35.11 L15.25 34.60 L16.16 33.68 L16.56 32.76 L16.78 31.22 L17.52 29.47 L18.37 28.81 L19.00 28.70 L19.40 28.67 L19.58 28.90 L19.98 29.54 L20.35 30.32 L20.64 31.06 L20.83 31.78 L20.98 32.30 L21.12 32.67 L21.34 33.00 L21.71 33.73 L22.29 34.55 L22.76 35.04 L23.34 35.51 L23.59 35.56 L23.96 35.56 L24.35 35.56 L24.64 35.53 L24.92 34.99 L25.14 34.13 L25.70 32.01 L26.63 27.63 L26.64 25.65 L26.64 23.41 L26.64 21.65 L27.01 18.82 L27.43 15.98 L27.64 13.94 L28.15 12.14 L28.47 11.20 L29.02 10.31 L29.58 9.96 L31.51 9.96 L33.66 10.85 L34.48 14.65 L34.68 18.13 L34.68 22.67 L34.68 28.14 L34.56 32.54 L34.49 39.02 L34.49 44.80 L34.49 48.45 L34.56 50.94 L35.12 52.58 L36.52 53.79 L38.32 54.04 L39.05 54.04 L39.34 54.00 L40.11 53.12 L41.36 50.57 L42.08 48.46 L42.87 43.25 L44.41 34.70 L44.44 31.46 L44.44 28.62 L44.44 25.46 L44.44 23.11 L44.44 20.51 L44.44 18.98 L44.66 16.61 L45.85 13.91 L46.21 13.40 L46.61 13.19 L46.90 13.10 L47.76 12.98 L48.79 12.98 L49.93 13.09 L50.82 14.29 L51.21 16.05 L51.45 18.54 L51.56 20.87 L51.56 22.73 L51.56 24.35 L51.56 25.43 L51.56 26.53 L51.56 27.24 L51.56 27.88 L51.56 28.51 L51.56 30.04 L51.86 32.13 L52.07 33.47 L52.12 33.69 L52.38 34.08 L52.81 34.40 L53.54 34.83 L54.29 35.18 L54.93 35.41 L55.47 35.41 L55.75 35.52 L56.00 35.58",
+  "distributesRotationEvenly" : false,
+  "foregroundHex" : "#6A232B",
+  "includeIconPackage" : false,
+  "includePreview" : true,
+  "lineThickness" : 4.2,
+  "lineThicknessVariation" : 0,
+  "outputPath" : "/Users/berndplontsch/PARALocal/apps/Louder",
+  "platforms" : [
+    "ios",
+    "macos"
+  ],
+  "projectPath" : "/Users/berndplontsch/PARALocal/apps/Louder",
+  "prototypeOnly" : false,
+  "schemaVersion" : 1,
+  "selectedSymbolID" : "shape:custom-sketch",
+  "shapeRepetitions" : 4,
+  "shapeRotationDegrees" : -2,
+  "symbolID" : "abstract-circle",
+  "transparentMacBackground" : false
+}

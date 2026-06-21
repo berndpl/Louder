@@ -1,0 +1,105 @@
+{
+  "fill" : {
+    "solid" : "display-p3:1.00000,0.98039,0.98039,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "display-p3:0.41569,0.13725,0.16863,0.20000"
+          },
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "Background.svg",
+          "name" : "Background",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.41569,0.13725,0.16863,0.45000"
+          },
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "AppIcon-0.svg",
+          "name" : "Shape 1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.41569,0.13725,0.16863,0.81667"
+          },
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "AppIcon-1.svg",
+          "name" : "Shape 2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.41569,0.13725,0.16863,0.81667"
+          },
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "AppIcon-2.svg",
+          "name" : "Shape 3",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.41569,0.13725,0.16863,0.45000"
+          },
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "AppIcon-3.svg",
+          "name" : "Shape 4",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.25
+      },
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
