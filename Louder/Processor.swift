@@ -5,11 +5,13 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     case boostDenoise
     case gentleBoostDenoise
     case studioBooth
+    case focus
+    case clean
 
     static let preferenceKey = "processingPreset"
 
     /// Presets offered in the menu picker.
-    static var pickerCases: [ProcessingPreset] { [.gentleBoostDenoise, .studioBooth] }
+    static var pickerCases: [ProcessingPreset] { [.gentleBoostDenoise, .studioBooth, .focus, .clean] }
 
     /// Presets generated when Compare fans out, in display order.
     static var comparePresets: [ProcessingPreset] {
@@ -24,6 +26,8 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
         case .boostDenoise: "Boost + Denoise"
         case .gentleBoostDenoise: "Louder"
         case .studioBooth: "Studio"
+        case .focus: "Focus"
+        case .clean: "Clean"
         }
     }
 
@@ -35,6 +39,8 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     var pathDescription: String {
         switch self {
         case .studioBooth: "Denoise + studio EQ + compression"
+        case .focus: "Mute background noise + denoise + boost"
+        case .clean: "AI speech cleanup + loudness boost"
         default: "Denoise + gentle loudness boost"
         }
     }
@@ -47,18 +53,37 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
         case .boostDenoise: "wand.and.sparkles"
         case .gentleBoostDenoise: "leaf.fill"
         case .studioBooth: "radio.fill"
+        case .focus: "speaker.slash.fill"
+        case .clean: "wand.and.stars"
         }
     }
 
     var targetLUFS: Int {
         switch self {
         case .boost, .boostDenoise: -14
-        case .gentleBoostDenoise, .studioBooth: -16
+        case .gentleBoostDenoise, .studioBooth, .focus, .clean: -16
         }
     }
 
     var usesDenoising: Bool {
         self != .boost
+    }
+
+    /// Ordered, side-effect-free WAV stages applied to the prepared audio before
+    /// the terminal render (loudnorm / Studio EQ+comp). Declaring the chain here
+    /// is what keeps the pipeline modular: a step is added or removed by editing
+    /// this list, with no effect on the others.
+    var audioStages: [AudioStage] {
+        switch self {
+        case .boost:
+            []
+        case .focus:
+            [EventGateStage(), DenoiseDFNStage()]
+        case .clean:
+            [EnhanceStage()]
+        case .boostDenoise, .gentleBoostDenoise, .studioBooth:
+            [DenoiseDFNStage()]
+        }
     }
 
     /// Studio Booth tuning, or `nil` for presets that only loudness-normalize.
@@ -294,9 +319,7 @@ enum Processor {
         let workDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("louder-\(UUID().uuidString)", isDirectory: true)
         let preparedURL = workDirectory.appendingPathComponent("prepared.wav")
-        let cleanedDirectory = workDirectory.appendingPathComponent("cleaned", isDirectory: true)
-        let cleanedURL = cleanedDirectory.appendingPathComponent("prepared.wav")
-        try FileManager.default.createDirectory(at: cleanedDirectory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: workDirectory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: workDirectory) }
 
         onProgress(trackCount > 1
@@ -327,24 +350,6 @@ enum Processor {
             }
         }
 
-        let presets = compare ? ProcessingPreset.comparePresets : [preset]
-        var denoiseError: String?
-        if presets.contains(where: \.usesDenoising) {
-            onProgress("Cleaning voice with DeepFilterNet…")
-            do {
-                try await DeepFilter.clean(preparedURL, outputDirectory: cleanedDirectory)
-                guard FileManager.default.fileExists(atPath: cleanedURL.path) else {
-                    throw LouderError.deepFilterFailed("DeepFilterNet did not create cleaned audio")
-                }
-            } catch {
-                if compare {
-                    denoiseError = error.localizedDescription
-                } else {
-                    throw error
-                }
-            }
-        }
-
         let trimmedSeconds: Double? = trimPlan.flatMap { plan in
             let trimmed = (duration ?? 0) - plan.windowLength
             return trimmed > 0.05 ? trimmed : nil
@@ -356,11 +361,10 @@ enum Processor {
                 sourceID: sourceID,
                 originalSeries: originalSeries,
                 preparedURL: preparedURL,
-                cleanedURL: cleanedURL,
+                workDir: workDirectory,
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
-                denoiseError: denoiseError,
                 stages: stages,
                 onProgress: onProgress
             )
@@ -368,13 +372,19 @@ enum Processor {
             return result
         }
 
+        let audioURL = try await AudioPipeline.run(
+            preset.audioStages,
+            input: preparedURL,
+            workDir: workDirectory,
+            onProgress: onProgress
+        )
+
         var result = try await processReplacement(
             sourceURL: url,
             sourceID: sourceID,
             originalSeries: originalSeries,
             preset: preset,
-            preparedURL: preparedURL,
-            cleanedURL: cleanedURL,
+            audioURL: audioURL,
             duration: duration,
             addFades: addFades,
             trimPlan: trimPlan,
@@ -414,8 +424,7 @@ enum Processor {
         sourceID: UUID,
         originalSeries: LoudnessSeries,
         preset: ProcessingPreset,
-        preparedURL: URL,
-        cleanedURL: URL,
+        audioURL: URL,
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
@@ -429,8 +438,7 @@ enum Processor {
                 sourceID: sourceID,
                 originalSeries: originalSeries,
                 preset: preset,
-                preparedURL: preparedURL,
-                cleanedURL: cleanedURL,
+                audioURL: audioURL,
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
@@ -456,7 +464,7 @@ enum Processor {
             onProgress("Creating \(preset.title)…")
             try await render(
                 sourceURL: sourceURL,
-                audioURL: preset.usesDenoising ? cleanedURL : preparedURL,
+                audioURL: audioURL,
                 outputURL: tempURL,
                 preset: preset,
                 duration: duration,
@@ -509,8 +517,7 @@ enum Processor {
         sourceID: UUID,
         originalSeries: LoudnessSeries,
         preset: ProcessingPreset,
-        preparedURL: URL,
-        cleanedURL: URL,
+        audioURL: URL,
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
@@ -522,7 +529,7 @@ enum Processor {
             onProgress("Creating \(preset.title)…")
             try await render(
                 sourceURL: sourceURL,
-                audioURL: preset.usesDenoising ? cleanedURL : preparedURL,
+                audioURL: audioURL,
                 outputURL: outputURL,
                 preset: preset,
                 duration: duration,
@@ -559,11 +566,10 @@ enum Processor {
         sourceID: UUID,
         originalSeries: LoudnessSeries,
         preparedURL: URL,
-        cleanedURL: URL,
+        workDir: URL,
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
-        denoiseError: String?,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async -> ProcessingResult {
@@ -571,10 +577,9 @@ enum Processor {
         var operations: [UndoOperation] = []
         var warnings: [String] = []
         var outputs: [URL] = []
-
-        if let denoiseError {
-            warnings.append("Denoised presets unavailable: \(denoiseError)")
-        }
+        // Shared across compared presets so an identical stage (e.g. denoise)
+        // runs only once.
+        var stageCache: [String: Result<URL, Error>] = [:]
 
         for preset in ProcessingPreset.comparePresets {
             if Task.isCancelled {
@@ -587,14 +592,26 @@ enum Processor {
                 break
             }
             let outputURL = freeComparisonURL(for: sourceURL, preset: preset)
-            if preset.usesDenoising, denoiseError != nil {
+
+            let audioURL: URL
+            do {
+                audioURL = try await AudioPipeline.run(
+                    preset.audioStages,
+                    input: preparedURL,
+                    workDir: workDir,
+                    cache: &stageCache,
+                    onProgress: onProgress
+                )
+            } catch {
+                warnings.append("\(preset.title): \(error.localizedDescription)")
                 continue
             }
+
             do {
                 onProgress("Creating \(preset.title)…")
                 try await render(
                     sourceURL: sourceURL,
-                    audioURL: preset.usesDenoising ? cleanedURL : preparedURL,
+                    audioURL: audioURL,
                     outputURL: outputURL,
                     preset: preset,
                     duration: duration,

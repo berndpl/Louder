@@ -1,11 +1,12 @@
 {
   "fill" : {
-    "solid" : "display-p3:1.00000,0.98039,0.98039,1.00000"
+    "solid" : "display-p3:0.93725,0.94510,0.96078,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
+          "blend-mode" : "darken",
           "glass" : false,
           "hidden" : false,
           "image-name" : "AppIcon-1.svg",
@@ -19,6 +20,7 @@
           }
         },
         {
+          "blend-mode" : "darken",
           "glass" : false,
           "hidden" : false,
           "image-name" : "AppIcon-0.svg",
@@ -33,7 +35,7 @@
         },
         {
           "fill" : {
-            "solid" : "display-p3:0.41569,0.13725,0.16863,0.20000"
+            "solid" : "display-p3:0.09020,0.57255,0.60000,0.20000"
           },
           "glass" : false,
           "hidden" : false,

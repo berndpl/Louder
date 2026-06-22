@@ -5,3 +5,4 @@ DerivedData/
 .build-local/
 build/
 dist/
+.spike-clean/

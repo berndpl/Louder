@@ -2,7 +2,11 @@
 
 # Louder
 
-Drop a video on it. The video gets loud. That's it.
+Drop a video on it. The voice gets loud and clear. That's it.
+
+Record screencasts, demos, or meetings with whatever mic you have, and the picture looks great but the audio comes out quiet, thin, and hard to follow. Louder fixes that in one drag‑and‑drop: it brings your voice up to a consistent, broadcast‑standard level, cleans up background noise, and trims dead air — then rewrites the file in place. No editor, no plugins, no audio settings to learn. If your recordings sound like they were made on a cheap mic in a real room, this is the one‑step way to make them sound intentional.
+
+<img src="Screenshot.png" width="460" alt="Louder showing loudness, noise, and trim results after processing a clip">
 
 A tiny macOS app that fixes quiet screen recordings and meeting captures (CleanShot, Teams, …) in place — no editor or fiddly audio controls.
 

@@ -339,9 +339,9 @@ struct ContentView: View {
     private func trimmedCard(for series: LoudnessSeries) -> some View {
         if let seconds = queue.trimmedSecondsBySource[series.sourceID] {
             metricCard(
-                title: "Trimmed · \(formattedTrim(seconds))",
-                value: "Silence",
-                detail: "Removed from the start and end of the clip.",
+                title: "Clip",
+                value: "\(formattedTrim(seconds)) trimmed",
+                detail: "Removed silence at the start and end of the clip.",
                 tint: .gray,
                 help: "Leading and trailing silence trimmed from the recording before processing."
             )
@@ -507,6 +507,7 @@ struct ContentView: View {
             )
             trimmedCard(for: series)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func metricCard(
@@ -533,7 +534,7 @@ struct ContentView: View {
                 .foregroundStyle(.tertiary)
                 .lineLimit(2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
         .background(tint.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
