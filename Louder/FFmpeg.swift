@@ -62,7 +62,10 @@ enum FFmpeg {
                     process.standardOutput = outPipe
                     process.standardError = errPipe
                     process.standardInput = FileHandle.nullDevice
-                    box.store(process)
+                    guard box.store(process) else {
+                        continuation.resume(throwing: CancellationError())
+                        return
+                    }
 
                     do {
                         try process.run()
@@ -70,6 +73,7 @@ enum FFmpeg {
                         continuation.resume(throwing: error)
                         return
                     }
+                    box.confirmRunning()
 
                     let output = ProcessOutput()
                     let readers = DispatchGroup()
@@ -503,13 +507,28 @@ nonisolated final class ProcessBox: @unchecked Sendable {
     private var process: Process?
     private var cancelled = false
 
-    func store(_ process: Process) {
+    /// Stores the process before it is launched. Returns `false` if a
+    /// cancellation already arrived, in which case the caller must NOT launch
+    /// the process (terminating an unlaunched `Process` raises an uncatchable
+    /// Objective-C exception).
+    @discardableResult
+    func store(_ process: Process) -> Bool {
         lock.lock()
         defer { lock.unlock() }
         if cancelled {
+            return false
+        }
+        self.process = process
+        return true
+    }
+
+    /// Call immediately after the process is launched to terminate it if a
+    /// cancellation arrived during the brief window between `store` and `run`.
+    func confirmRunning() {
+        lock.lock()
+        defer { lock.unlock() }
+        if cancelled, let process, process.isRunning {
             process.terminate()
-        } else {
-            self.process = process
         }
     }
 

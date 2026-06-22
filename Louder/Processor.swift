@@ -666,8 +666,8 @@ enum Processor {
             throw LouderError.backupFailed(error.localizedDescription)
         }
 
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("louder-output-\(UUID().uuidString)")
+        let tempURL = sourceURL.deletingLastPathComponent()
+            .appendingPathComponent(".louder-output-\(UUID().uuidString)")
             .appendingPathExtension(sourceURL.pathExtension)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
@@ -701,8 +701,10 @@ enum Processor {
         }
 
         do {
-            try FileManager.default.removeItem(at: sourceURL)
-            try FileManager.default.moveItem(at: tempURL, to: sourceURL)
+            // Atomic same-volume swap: the temp output lives in the source's
+            // directory, so this replaces the original in one operation instead
+            // of a non-atomic removeItem + cross-volume moveItem.
+            _ = try FileManager.default.replaceItemAt(sourceURL, withItemAt: tempURL)
 
             let backupSeries = LoudnessSeries(
                 sourceID: sourceID,

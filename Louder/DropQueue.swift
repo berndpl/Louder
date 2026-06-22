@@ -224,12 +224,10 @@ final class DropQueue {
                         }
                     }
                     if Task.isCancelled {
-                        // Discard this result; rollback removes its artifacts.
-                        for operation in result.undoOperations {
-                            if case .delete(let url) = operation {
-                                try? FileManager.default.removeItem(at: url)
-                            }
-                        }
+                        // Include this finished item's artifacts in the batch
+                        // transaction so rollbackCancelledBatch() fully reverses
+                        // it — including restoring any replaced original.
+                        transactionOperations.append(contentsOf: result.undoOperations)
                         break
                     }
                     series.append(contentsOf: result.series)

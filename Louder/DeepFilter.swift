@@ -64,7 +64,10 @@ enum DeepFilter {
                     let errPipe = Pipe()
                     process.standardOutput = outPipe
                     process.standardError = errPipe
-                    box.store(process)
+                    guard box.store(process) else {
+                        continuation.resume(throwing: CancellationError())
+                        return
+                    }
 
                     do {
                         try process.run()
@@ -74,6 +77,7 @@ enum DeepFilter {
                         )
                         return
                     }
+                    box.confirmRunning()
 
                     let output = ProcessOutput()
                     let readers = DispatchGroup()
