@@ -53,6 +53,7 @@ struct ContentView: View {
     let comparisonPlayer: ComparisonPlayer
     @State private var isTargeted = false
     @State private var hoveredSeriesID: UUID?
+    @State private var selectedVersionID: UUID?
     @AppStorage(ProcessingPreset.preferenceKey)
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
 
@@ -92,8 +93,53 @@ struct ContentView: View {
         if let activeSeriesID = comparisonPlayer.activeSeriesID {
             return queue.series.first { $0.id == activeSeriesID }
         }
+        if let selectedVersionID,
+           let selected = queue.series.first(where: { $0.id == selectedVersionID }) {
+            return selected
+        }
         return queue.series.last { $0.preset == highlightedPreset }
             ?? queue.series.last
+    }
+
+    /// Newly created output files for the currently focused source, in Compare
+    /// display order. Excludes the untouched original / backup.
+    private var focusedSourceOutputs: [LoudnessSeries] {
+        guard let sourceID = focusedSeries?.sourceID else { return [] }
+        let order = ProcessingPreset.comparePresets
+        return queue.series
+            .filter { $0.sourceID == sourceID && !$0.isOriginal }
+            .sorted { lhs, rhs in
+                let li = lhs.preset.flatMap { order.firstIndex(of: $0) } ?? Int.max
+                let ri = rhs.preset.flatMap { order.firstIndex(of: $0) } ?? Int.max
+                return li < ri
+            }
+    }
+
+    /// Among the current batch's generated outputs, the one whose integrated
+    /// loudness sits closest to its preset target. `nil` unless there are at
+    /// least two outputs to compare.
+    private var bestLoudnessSeriesID: UUID? {
+        let outputs = focusedSourceOutputs
+        guard outputs.count > 1 else { return nil }
+        return outputs.min { lhs, rhs in
+            loudnessDistance(for: lhs) < loudnessDistance(for: rhs)
+        }?.id
+    }
+
+    /// Among the current batch's generated outputs, the one with the highest
+    /// signal-to-noise ratio (least audible background noise). `nil` unless at
+    /// least two outputs expose an SNR estimate.
+    private var bestNoiseSeriesID: UUID? {
+        let rated = focusedSourceOutputs.filter { $0.metrics.estimatedSNR != nil }
+        guard rated.count > 1 else { return nil }
+        return rated.max { lhs, rhs in
+            (lhs.metrics.estimatedSNR ?? -.infinity) < (rhs.metrics.estimatedSNR ?? -.infinity)
+        }?.id
+    }
+
+    private func loudnessDistance(for series: LoudnessSeries) -> Double {
+        let target = Double(series.preset?.targetLUFS ?? -16)
+        return abs(series.metrics.integratedLUFS - target)
     }
 
     private var processingSelection: Binding<String> {
@@ -310,7 +356,13 @@ struct ContentView: View {
         } else {
             VStack(spacing: 5) {
                 if statusNotices.isEmpty {
-                    if let focusedSeries {
+                    if !focusedSourceOutputs.isEmpty {
+                        VStack(alignment: .leading, spacing: 3) {
+                            ForEach(focusedSourceOutputs) { series in
+                                fileRow(for: series)
+                            }
+                        }
+                    } else if let focusedSeries {
                         revealInFinderButton(for: focusedSeries)
                     } else if let completedItem = latestCompletedItem {
                         revealInFinderButton(
@@ -392,6 +444,48 @@ struct ContentView: View {
             }
         }
         return notices
+    }
+
+    /// One row in the created-files list: tap the name to focus that version
+    /// (highlighted curve + metric cards); the folder icon reveals it in Finder.
+    private func fileRow(for series: LoudnessSeries) -> some View {
+        let isFocused = focusedSeries?.id == series.id
+        let iconName = series.preset?.iconName ?? "checkmark.circle.fill"
+        let iconColor = series.preset?.tint ?? .positive
+        return HStack(spacing: 7) {
+            Button {
+                selectedVersionID = series.id
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: iconName)
+                        .foregroundStyle(iconColor)
+                    Text(series.url.lastPathComponent)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 4)
+                }
+                .fontWeight(isFocused ? .medium : .regular)
+                .opacity(isFocused ? 1 : 0.5)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                if hovering {
+                    hoveredSeriesID = series.id
+                } else if hoveredSeriesID == series.id {
+                    hoveredSeriesID = nil
+                }
+            }
+            Button {
+                NSWorkspace.shared.activateFileViewerSelecting([series.url])
+            } label: {
+                Image(systemName: "folder")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("Reveal in Finder")
+        }
     }
 
     private func revealInFinderButton(for series: LoudnessSeries) -> some View {
@@ -496,6 +590,7 @@ struct ContentView: View {
                 value: loudnessSummary(for: series),
                 detail: loudnessAssessment(for: series),
                 tint: loudnessTint(for: series),
+                isBest: series.id == bestLoudnessSeriesID,
                 help: "Perceived loudness versus the original. Roughly every 10 LU doubles or halves how loud it sounds, so the percentage reflects the audible change, not the raw level."
             )
             metricCard(
@@ -503,6 +598,7 @@ struct ContentView: View {
                 value: noiseSummary(for: series),
                 detail: noiseAssessment(for: series),
                 tint: noiseTint(for: series),
+                isBest: series.id == bestNoiseSeriesID,
                 help: "Perceived background noise versus the original, estimated from active and quiet sections. The percentage reflects how much more or less noise you'd hear; this is a practical estimate, not a clean-reference measurement."
             )
             trimmedCard(for: series)
@@ -515,6 +611,7 @@ struct ContentView: View {
         value: String,
         detail: String,
         tint: Color,
+        isBest: Bool = false,
         help: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -524,6 +621,12 @@ struct ContentView: View {
                     .frame(width: 6, height: 6)
                 Text(title)
                     .lineLimit(1)
+                if isBest {
+                    Spacer(minLength: 4)
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.yellow)
+                        .help("Best value in this batch")
+                }
             }
             .font(.caption2)
             .foregroundStyle(.secondary)

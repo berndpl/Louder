@@ -2,11 +2,15 @@
   "backgroundHex" : "#EFF1F5",
   "backgroundLayer" : "dotted",
   "cloneOpacityVariation" : 0,
-  "cloneScale" : 1.75,
+  "cloneScale" : 1,
   "cloneScaleVariation" : 0,
   "cornerRadius" : 2,
   "cornerRadiusVariation" : 0,
-  "createdAt" : "2026-06-21T13:40:12Z",
+  "createdAt" : "2026-06-22T01:17:33Z",
+  "customLayerBlendModes" : [
+    "darken",
+    "darken"
+  ],
   "customLayerSVGs" : [
     "<svg width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M427.755 727.245C571.766 727.245 688.509 610.501 688.509 466.49H167C167 610.501 283.744 727.245 427.755 727.245Z\" fill=\"#0080FF\"/>\n</svg>\n",
     "<svg width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M597.245 297C453.234 297 336.491 413.744 336.491 557.755L858 557.755C858 413.744 741.256 297 597.245 297Z\" fill=\"#FF0091\"/>\n</svg>\n"

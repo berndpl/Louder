@@ -13,9 +13,10 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     /// Presets offered in the menu picker.
     static var pickerCases: [ProcessingPreset] { [.gentleBoostDenoise, .studioBooth, .focus, .clean] }
 
-    /// Presets generated when Compare fans out, in display order.
+    /// Presets generated when Compare fans out, in display order. Mirrors the
+    /// picker so every available preset produces a variant to compare.
     static var comparePresets: [ProcessingPreset] {
-        [.gentleBoostDenoise, .studioBooth]
+        pickerCases
     }
 
     var id: Self { self }
@@ -263,7 +264,7 @@ struct BatchTransaction: Sendable {
 struct ProcessingResult: Sendable {
     let series: [LoudnessSeries]
     let undoOperations: [UndoOperation]
-    let warnings: [String]
+    var warnings: [String]
     let outputURLs: [URL]
     /// Seconds of leading/trailing silence removed, when trimming was applied.
     var trimmedSeconds: Double? = nil
@@ -325,7 +326,17 @@ enum Processor {
         onProgress(trackCount > 1
             ? "Preparing and merging \(trackCount) audio tracks…"
             : "Preparing audio…")
-        try await prepareAudio(url, at: preparedURL, trackCount: trackCount)
+        let sourceChannels = await FFmpeg.maxAudioChannels(of: url)
+        let mergedFromChannels = sourceChannels > 2 ? sourceChannels : nil
+        try await prepareAudio(
+            url,
+            at: preparedURL,
+            trackCount: trackCount,
+            downmixToMono: mergedFromChannels != nil
+        )
+        let mergeNote = mergedFromChannels.map {
+            "Merged \($0)-channel audio to mono to avoid playback issues on some devices."
+        }
 
         var trimPlan: TrimPlan?
         if trimSilence {
@@ -369,6 +380,7 @@ enum Processor {
                 onProgress: onProgress
             )
             result.trimmedSeconds = trimmedSeconds
+            if let mergeNote { result.warnings.insert(mergeNote, at: 0) }
             return result
         }
 
@@ -393,13 +405,15 @@ enum Processor {
             onProgress: onProgress
         )
         result.trimmedSeconds = trimmedSeconds
+        if let mergeNote { result.warnings.insert(mergeNote, at: 0) }
         return result
     }
 
     private static func prepareAudio(
         _ inputURL: URL,
         at outputURL: URL,
-        trackCount: Int
+        trackCount: Int,
+        downmixToMono: Bool
     ) async throws {
         var arguments = ["-hide_banner", "-y", "-i", inputURL.path]
         if trackCount > 1 {
@@ -410,6 +424,9 @@ enum Processor {
             ]
         } else {
             arguments += ["-map", "0:a:0"]
+        }
+        if downmixToMono {
+            arguments += ["-ac", "1"]
         }
         arguments += ["-ar", "48000", "-c:a", "pcm_s16le", outputURL.path]
 
@@ -502,7 +519,7 @@ enum Processor {
             return ProcessingResult(
                 series: [backupSeries, outputSeries],
                 undoOperations: [.restore(originalURL: sourceURL, backupURL: backupURL)],
-                warnings: [],
+                warnings: await FFmpeg.compatibilityWarnings(for: sourceURL),
                 outputURLs: [sourceURL]
             )
         } catch {
@@ -552,7 +569,7 @@ enum Processor {
             return ProcessingResult(
                 series: [originalSeries, outputSeries],
                 undoOperations: [.delete(url: outputURL)],
-                warnings: [],
+                warnings: await FFmpeg.compatibilityWarnings(for: outputURL),
                 outputURLs: [outputURL]
             )
         } catch {
@@ -637,6 +654,10 @@ enum Processor {
             }
         }
 
+        if let firstOutput = outputs.first {
+            warnings.append(contentsOf: await FFmpeg.compatibilityWarnings(for: firstOutput))
+        }
+
         return ProcessingResult(
             series: series,
             undoOperations: operations,
@@ -688,7 +709,15 @@ enum Processor {
         if let trimPlan {
             arguments += ["-t", posix(trimPlan.windowLength)]
         }
-        arguments += ["-c:a", "aac", outputURL.path]
+        // Encode broadly-compatible 48 kHz AAC-LC. loudnorm otherwise resamples
+        // to 96 kHz, which several hardware decoders refuse to play; pin 48 kHz.
+        arguments += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+        // Move the moov atom to the front so the file starts playing immediately
+        // everywhere (progressive download, web players, embedded viewers).
+        if ["mp4", "m4v", "mov", "m4a"].contains(outputURL.pathExtension.lowercased()) {
+            arguments += ["-movflags", "+faststart"]
+        }
+        arguments += [outputURL.path]
 
         let result = try await FFmpeg.run(tool: "ffmpeg", arguments: arguments)
         guard result.exitCode == 0, FileManager.default.fileExists(atPath: outputURL.path) else {

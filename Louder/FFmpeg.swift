@@ -98,6 +98,59 @@ enum FFmpeg {
         }
     }
 
+    /// Inspects a finished output file and returns human-readable playback
+    /// limitations, if any. The video stream is copied from the source, so these
+    /// mostly reflect how the original was recorded.
+    static func compatibilityWarnings(for url: URL) async -> [String] {
+        let result = try? await run(tool: "ffprobe", arguments: [
+            "-v", "error",
+            "-show_entries", "stream=codec_type,codec_name,pix_fmt,sample_rate,duration",
+            "-of", "json",
+            url.path
+        ])
+        guard let result, result.exitCode == 0,
+              let data = result.output.data(using: .utf8),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let streams = root["streams"] as? [[String: Any]] else {
+            return []
+        }
+
+        var warnings: [String] = []
+        var videoDuration: Double?
+        var audioDuration: Double?
+
+        for stream in streams {
+            let type = stream["codec_type"] as? String
+            let codec = (stream["codec_name"] as? String)?.lowercased() ?? ""
+            let duration = (stream["duration"] as? String).flatMap(Double.init)
+            if type == "video" {
+                videoDuration = duration ?? videoDuration
+                if codec == "hevc" || codec == "h265" {
+                    warnings.append("Video is H.265 (HEVC), copied from your recording. It plays on recent Apple devices but not on many older phones, TVs, or web browsers — record in H.264 for the widest reach.")
+                } else if !codec.isEmpty, codec != "h264" {
+                    warnings.append("Video uses \(codec.uppercased()), copied from your recording. H.264 is the format that plays virtually everywhere.")
+                }
+                if let pix = stream["pix_fmt"] as? String, !pix.isEmpty, pix != "yuv420p" {
+                    warnings.append("Video is \(pix) (high bit-depth or 4:2:2/4:4:4). Many devices only decode 8-bit 4:2:0.")
+                }
+            } else if type == "audio" {
+                audioDuration = duration ?? audioDuration
+                if let rate = (stream["sample_rate"] as? String).flatMap(Int.init), rate > 48000 {
+                    warnings.append("Audio is \(rate) Hz; some devices only support up to 48 kHz.")
+                }
+                if !codec.isEmpty, codec != "aac", codec != "mp3" {
+                    warnings.append("Audio uses \(codec.uppercased()); AAC is the most broadly supported format.")
+                }
+            }
+        }
+
+        if let v = videoDuration, let a = audioDuration, abs(v - a) > 0.75 {
+            warnings.append(String(format: "Audio and video lengths differ by %.1fs, which can cause sync drift.", abs(v - a)))
+        }
+
+        return warnings
+    }
+
     static func audioTrackCount(of url: URL) async throws -> Int {
         let result = try await run(tool: "ffprobe", arguments: [
             "-v", "error",
@@ -110,6 +163,24 @@ enum FFmpeg {
             throw LouderError.processingFailed(lastLines(of: result.error))
         }
         return result.output.split(whereSeparator: \.isNewline).count
+    }
+
+    /// The highest channel count across the file's audio streams (0 if unknown).
+    /// Used to detect surround/multi-channel sources that need a mono downmix
+    /// for reliable playback.
+    static func maxAudioChannels(of url: URL) async -> Int {
+        let result = try? await run(tool: "ffprobe", arguments: [
+            "-v", "error",
+            "-select_streams", "a",
+            "-show_entries", "stream=channels",
+            "-of", "csv=p=0",
+            url.path
+        ])
+        guard let result, result.exitCode == 0 else { return 0 }
+        return result.output
+            .split(whereSeparator: \.isNewline)
+            .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            .max() ?? 0
     }
 
     static func audioMetrics(of url: URL) async throws -> AudioMetrics {

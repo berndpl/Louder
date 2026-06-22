@@ -17,11 +17,17 @@ Drag one or more video or audio files onto the Dock icon (or the drop window). F
 1. Backs up the original to `<name> - original.<ext>` next to the file.
 2. Probes the audio tracks with ffprobe.
 3. Applies one remembered preset: **Boost** (`-14 LUFS`), **Boost + Denoise** (`-14 LUFS` plus DeepFilterNet), or **Gentle Boost + Denoise** (`-16 LUFS` plus DeepFilterNet).
-4. Optionally chooses **Compare** as the final preset-menu item to leave the source untouched and create all three clearly named variants beside it.
+4. Optionally chooses **Compare** as the final preset-menu item to leave the source untouched and create one clearly named variant for **every** preset (Louder, Studio, Focus, Clean) beside it.
 5. By default, adds natural 0.25-second audio fades at the beginning and end. The persisted Settings toggle can turn this off; clips shorter than 0.5 seconds or without a reliable duration are normalized without fades.
-6. Copies the video stream untouched, re-encodes audio as AAC, and replaces the original file in place.
+6. Copies the video stream untouched and re-encodes audio as broadly-compatible **48 kHz AAC-LC**, writing the result with the `moov` atom up front (`+faststart`) so it begins playing immediately on web players, embedded viewers, and devices — then replaces the original file in place.
 
 The window stays open after processing with compact measured loudness curves, integrated LUFS, estimated signal-to-noise ratio, and a native Undo action. Click any curve to hear that version; switching curves keeps the current timestamp for immediate A/B comparison. If a file fails, the original is left untouched.
+
+## Playback compatibility
+
+Louder targets the widest possible device support: output audio is always 48 kHz AAC-LC and every file is written `+faststart`. Because the **video stream is copied untouched** (never re-encoded, to preserve quality and speed), the output's video compatibility matches your source recording. After each file is saved Louder inspects the result and surfaces a clear warning if it finds a limitation — for example an **H.265 (HEVC)** video copied from your recording (great on recent Apple gear, but not on many older phones, TVs, or browsers), a high-bit-depth/4:2:2 pixel format, or an audio/video length mismatch that could drift. For the broadest reach, record screencasts in **H.264**. (When Louder trims silence it does re-encode the trimmed video to H.264 8-bit 4:2:0.)
+
+Louder also detects **multi-channel (surround) audio**. Mono and stereo are left untouched, but recordings with more than two channels (e.g. 5.1) are automatically merged down to a single mono channel to avoid silent or broken playback on devices that can't decode the surround layout — and Louder shows a short note when it does.
 
 The Fades preference lives in **Louder → Settings**.
 
