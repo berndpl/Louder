@@ -39,9 +39,15 @@ struct CompactWaveformView: View {
                 switch phase {
                 case .active(let location):
                     NSCursor.pointingHand.set()
+                    // Spread the lanes only while the pointer is over the graph
+                    // itself, so overlapping lines stay individually pickable.
+                    if spread != 1 {
+                        withAnimation(.easeOut(duration: 0.22)) { spread = 1 }
+                    }
                     onHover(nearestCurve(to: location, curves: hitCurves)?.series.id)
                 case .ended:
                     NSCursor.arrow.set()
+                    withAnimation(.easeOut(duration: 0.22)) { spread = 0 }
                     onHover(nil)
                 }
             }
@@ -55,11 +61,6 @@ struct CompactWaveformView: View {
             )
         }
         .frame(height: 86)
-        .onChange(of: hoveredSeriesID) { _, newValue in
-            withAnimation(.easeOut(duration: 0.22)) {
-                spread = newValue == nil ? 0 : 1
-            }
-        }
         .accessibilityRepresentation {
             VStack {
                 ForEach(series) { item in
@@ -209,8 +210,12 @@ struct CompactWaveformView: View {
     }
 
     private func priority(_ series: LoudnessSeries) -> Int {
-        if series.id == activeSeriesID { return 3 }
-        if series.id == hoveredSeriesID { return 2 }
+        // Higher priority draws later, i.e. on top. The hovered line wins while
+        // pointing; otherwise the selected (blue) line sits on top so the
+        // selection is never hidden behind a neighbouring curve.
+        if series.id == hoveredSeriesID { return 4 }
+        if series.id == selectedSeriesID { return 3 }
+        if series.id == activeSeriesID { return 2 }
         if series.preset == highlightedPreset { return 1 }
         return 0
     }
@@ -225,6 +230,7 @@ struct CompactWaveformView: View {
         if let hoveredSeriesID {
             return series.id == hoveredSeriesID ? 1 : 0.12
         }
+        if series.id == selectedSeriesID { return 1 }
         if series.id == activeSeriesID { return 1 }
         if series.isOriginal { return 0.2 }
         return series.preset == highlightedPreset ? 1 : 0.16

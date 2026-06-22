@@ -34,7 +34,7 @@ struct EnhanceStage: AudioStage {
 
         // 2. Read samples, run the model, write the enhanced signal back out.
         let samples = try Self.readMonoFloatSamples(modelInput)
-        let enhanced = try Self.runModel(samples, resource: modelResource)
+        let enhanced = try await Self.runModel(samples, resource: modelResource)
         let modelOutput = dir.appendingPathComponent("model-out.wav")
         try Self.writeMonoFloatSamples(enhanced, to: modelOutput, sampleRate: Double(modelSampleRate))
 
@@ -62,7 +62,86 @@ struct EnhanceStage: AudioStage {
 
     // MARK: - Core ML inference
 
-    private static func runModel(_ samples: [Float], resource: String) throws -> [Float] {
+    /// The model accepts a flexible input length, but feeding a whole long
+    /// recording as one giant tensor allocates enormous intermediate buffers and
+    /// runs as a single multi-minute, un-cancellable inference — which freezes
+    /// the app (beach ball) and, past the model's max length, fails outright.
+    ///
+    /// So we run the model over the signal in bounded, overlapping windows and
+    /// crossfade them back together. GTCRN is causal with a short receptive
+    /// field, so a ~2 s overlap makes the stitched output indistinguishable from
+    /// a single whole-file pass while keeping memory flat and the UI responsive.
+    /// Clips that already fit comfortably in one window keep the exact original
+    /// single-shot path (no behavioural change for the common short case).
+
+    /// Window of samples fed to the model per inference (6 s at 16 kHz — the
+    /// model's tuned default length).
+    private static let chunkWindow = 96_000
+    /// Overlap between consecutive windows, crossfaded to hide boundaries (2 s).
+    /// Wide enough that the stitched output stays ~37 dB below the whole-file
+    /// reference — inaudible — while keeping per-inference memory bounded.
+    private static let chunkOverlap = 32_000
+    /// CoreML minimum accepted input length for this model.
+    private static let minChunk = 512
+
+    private static func runModel(_ samples: [Float], resource: String) async throws -> [Float] {
+        let model = try loadModel(resource)
+
+        // Short clips: keep the original exact single-shot behaviour.
+        if samples.count <= chunkWindow {
+            return try predict(samples, with: model)
+        }
+
+        let total = samples.count
+        let hop = chunkWindow - chunkOverlap
+        var output = [Float](repeating: 0, count: total)
+        var weight = [Float](repeating: 0, count: total)
+
+        var start = 0
+        while start < total {
+            try Task.checkCancellation()
+
+            var windowStart = start
+            let windowEnd = min(start + chunkWindow, total)
+            // Guarantee the model's minimum input length on a tiny final remainder
+            // by extending backwards into already-covered (overlapping) samples.
+            if windowEnd - windowStart < minChunk {
+                windowStart = max(0, windowEnd - minChunk)
+            }
+
+            let chunk = Array(samples[windowStart..<windowEnd])
+            let enhanced = try predict(chunk, with: model)
+
+            let rampIn = windowStart > 0
+            let rampOut = windowEnd < total
+            let n = min(enhanced.count, windowEnd - windowStart)
+            for i in 0..<n {
+                var w: Float = 1
+                if rampIn && i < chunkOverlap {
+                    w *= Float(i) / Float(chunkOverlap)
+                }
+                let fromEnd = n - 1 - i
+                if rampOut && fromEnd < chunkOverlap {
+                    w *= Float(fromEnd) / Float(chunkOverlap)
+                }
+                let g = windowStart + i
+                output[g] += enhanced[i] * w
+                weight[g] += w
+            }
+
+            if windowEnd >= total { break }
+            start += hop
+            await Task.yield()
+        }
+
+        // Normalise by accumulated crossfade weight (1.0 in non-overlap regions).
+        for i in 0..<total where weight[i] > 1e-6 {
+            output[i] /= weight[i]
+        }
+        return output
+    }
+
+    private static func loadModel(_ resource: String) throws -> MLModel {
         guard let url = Bundle.main.url(forResource: resource, withExtension: "mlmodelc")
             ?? Bundle.main.url(forResource: resource, withExtension: "mlpackage") else {
             throw LouderError.processingFailed("The bundled AI enhancement model is missing")
@@ -73,7 +152,10 @@ struct EnhanceStage: AudioStage {
         // reproduces the reference output. Do not change without re-validating.
         config.computeUnits = .cpuOnly
 
-        let model = try MLModel(contentsOf: url, configuration: config)
+        return try MLModel(contentsOf: url, configuration: config)
+    }
+
+    private static func predict(_ samples: [Float], with model: MLModel) throws -> [Float] {
         guard let inputName = model.modelDescription.inputDescriptionsByName.keys.first,
               let outputName = model.modelDescription.outputDescriptionsByName.keys.first else {
             throw LouderError.processingFailed("AI enhancement model has no I/O description")

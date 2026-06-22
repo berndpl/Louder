@@ -19,6 +19,7 @@ final class DropQueue {
         let addFades: Bool
         let trimSilence: Bool
         let renameOriginal: Bool
+        let resolution: OutputResolution
         let stages: StudioBoothStages
         var status: Status = .waiting
     }
@@ -53,6 +54,7 @@ final class DropQueue {
         addFades: Bool,
         trimSilence: Bool,
         renameOriginal: Bool,
+        resolution: OutputResolution,
         stages: StudioBoothStages
     ) {
         if !isRunning {
@@ -73,6 +75,7 @@ final class DropQueue {
                 addFades: addFades,
                 trimSilence: trimSilence,
                 renameOriginal: renameOriginal,
+                resolution: resolution,
                 stages: stages
             )
         })
@@ -213,6 +216,7 @@ final class DropQueue {
                         addFades: next.addFades,
                         trimSilence: next.trimSilence,
                         renameOriginal: next.renameOriginal,
+                        resolution: next.resolution,
                         stages: next.stages
                     ) { message in
                         Task { @MainActor [weak self] in

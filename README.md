@@ -1,14 +1,12 @@
-<img src="AppIcon.png" width="128" alt="Louder app icon">
+<img src="AppIconRounded.png" width="128" alt="Louder app icon">
 
 # Louder
 
 Drop a video on it. The voice gets loud and clear. That's it.
 
-Record screencasts, demos, or meetings with whatever mic you have, and the picture looks great but the audio comes out quiet, thin, and hard to follow. Louder fixes that in one drag‑and‑drop: it brings your voice up to a consistent, broadcast‑standard level, cleans up background noise, and trims dead air — then rewrites the file in place. No editor, no plugins, no audio settings to learn. If your recordings sound like they were made on a cheap mic in a real room, this is the one‑step way to make them sound intentional.
+If you record screencasts, demos, or meetings with whatever mic you have, the picture looks great but the audio comes out quiet, thin, and hard to follow. Louder fixes that in one drag‑and‑drop: it brings your voice up to a consistent, broadcast‑standard level, cleans up background noise, and trims dead air — then rewrites the file in place. No editor, no plugins, no audio settings to learn.
 
-<img src="Screenshot.png" width="460" alt="Louder showing loudness, noise, and trim results after processing a clip">
-
-A tiny macOS app that fixes quiet screen recordings and meeting captures (CleanShot, Teams, …) in place — no editor or fiddly audio controls.
+<img src="Screenshot.png" width="460" alt="Louder showing loudness, isolation, and trim results after comparing presets on a clip">
 
 ## What it does
 
@@ -16,12 +14,36 @@ Drag one or more video or audio files onto the Dock icon (or the drop window). F
 
 1. Backs up the original to `<name> - original.<ext>` next to the file.
 2. Probes the audio tracks with ffprobe.
-3. Applies one remembered preset: **Boost** (`-14 LUFS`), **Boost + Denoise** (`-14 LUFS` plus DeepFilterNet), or **Gentle Boost + Denoise** (`-16 LUFS` plus DeepFilterNet).
+3. Applies one remembered preset — **Louder**, **Studio**, **Focus**, or **Clean** (see [Presets](#presets) below).
 4. Optionally chooses **Compare** as the final preset-menu item to leave the source untouched and create one clearly named variant for **every** preset (Louder, Studio, Focus, Clean) beside it.
 5. By default, adds natural 0.25-second audio fades at the beginning and end. The persisted Settings toggle can turn this off; clips shorter than 0.5 seconds or without a reliable duration are normalized without fades.
 6. Copies the video stream untouched and re-encodes audio as broadly-compatible **48 kHz AAC-LC**, writing the result with the `moov` atom up front (`+faststart`) so it begins playing immediately on web players, embedded viewers, and devices — then replaces the original file in place.
 
 The window stays open after processing with compact measured loudness curves, integrated LUFS, estimated signal-to-noise ratio, and a native Undo action. Click any curve to hear that version; switching curves keeps the current timestamp for immediate A/B comparison. If a file fails, the original is left untouched.
+
+## Presets
+
+All presets target a consistent **−16 LUFS** loudness and differ only in how they clean the voice before the boost. **Compare** (the last menu item) runs all four at once, leaves the source untouched, and writes one clearly named variant beside it so you can A/B them.
+
+| Preset | Signal path | Effect |
+| --- | --- | --- |
+| **Louder** | DeepFilterNet3 denoise → loudness boost | The safe default. Gentle stationary-noise cleanup, then brings the voice up to a consistent level. Closest to "just make it louder." |
+| **Studio** | DeepFilterNet3 denoise → studio EQ + compression → boost | Adds a warm broadcast tone: high-pass rumble cut, low-end and presence shaping, and gentle compression for an even, "produced" sound. |
+| **Focus** | Event-gate (Apple SoundAnalysis) → DeepFilterNet3 denoise → boost | Detects and ducks intermittent background events (a door, a dog, keyboard clatter) before denoising. Best when the room is occasionally noisy rather than constantly. |
+| **Clean** | AI speech enhancement (neural model) → boost | Rebuilds the voice with an on-device neural model for the strongest cleanup of complex, non-stationary noise. Band-limited, so it sounds clearer but slightly duller than the 48 kHz presets — try it when the others leave too much noise. |
+
+Each variant is saved as `<name> - <Preset>.<ext>` (e.g. `talk - Studio.mp4`).
+
+The **ⓘ** button beside the preset menu opens a schematic "signal chain" — the stages of the selected preset drawn as connected stompboxes — with the exact model and parameters behind each stage (DeepFilterNet3, Apple SoundAnalysis, the neural enhancer, the EQ/compressor/loudness settings) and links to the relevant documentation. No secrets: it's there to show how the processing actually works.
+
+## Output quality
+
+A small **4K / 1080p** control on the drop screen sets a maximum output height (4K = 2160, 1080p = 1080). It works as a cap, not a forced size:
+
+- A recording **at or below** the cap keeps its original video, copied untouched (the default, fastest path).
+- A recording **above** the cap is downscaled to the cap and re-encoded to broadly-compatible **H.264 8-bit 4:2:0** (CRF 18, `veryfast`), preserving aspect ratio.
+
+The choice is remembered between launches. Whenever the video is actually re-encoded — by a downscale, or by a silence trim — a **Size** assessment card appears showing the file-size change (e.g. `120 MB → 66 MB`). In a **Compare** batch the smallest re-encoded variant is starred. Files copied untouched and audio-only inputs show no Size card.
 
 ## Playback compatibility
 

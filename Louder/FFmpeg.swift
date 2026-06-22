@@ -183,6 +183,24 @@ enum FFmpeg {
             .max() ?? 0
     }
 
+    /// Height in pixels of the first video stream, or `nil` for audio-only files
+    /// or when it can't be determined. Used to decide whether a downscale is
+    /// needed for the chosen output quality.
+    static func videoHeight(of url: URL) async -> Int? {
+        let result = try? await run(tool: "ffprobe", arguments: [
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=height",
+            "-of", "csv=p=0",
+            url.path
+        ])
+        guard let result, result.exitCode == 0 else { return nil }
+        return result.output
+            .split(whereSeparator: \.isNewline)
+            .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            .first
+    }
+
     static func audioMetrics(of url: URL) async throws -> AudioMetrics {
         let result = try await run(tool: "ffmpeg", arguments: [
             "-hide_banner",
@@ -230,6 +248,69 @@ enum FFmpeg {
             snrConfidence: snr.confidence,
             points: downsample(points, maximumCount: 360)
         )
+    }
+
+    /// Measures how much of the prepared audio an isolation stage removed, by
+    /// comparing the stage's input and output sample-for-sample. Returns the
+    /// share of the input's energy that was stripped out (0…1), or `nil` when no
+    /// isolation stage ran (`input == output`) or the measurement can't be made.
+    ///
+    /// The residual `input − output` is exactly the non-voice content the model
+    /// took away — background, hiss, the tail of a room. Expressed relative to
+    /// the input it answers "how much work did the model do", independent of any
+    /// later loudness normalisation and without needing quiet gaps to sample.
+    static func isolationRemoval(input: URL, output: URL) async -> Double? {
+        guard input.path != output.path else { return nil }
+        guard let inputDb = await rmsLevel(of: input),
+              let residualDb = await residualRMSLevel(input: input, output: output),
+              inputDb.isFinite, residualDb.isFinite else {
+            return nil
+        }
+        // The dB gap between the removed energy and the input energy is a power
+        // ratio; convert it to a 0…1 fraction of the input that was removed.
+        let fraction = pow(10, (residualDb - inputDb) / 10)
+        guard fraction.isFinite else { return nil }
+        return min(max(fraction, 0), 1)
+    }
+
+    private static func rmsLevel(of url: URL) async -> Double? {
+        guard let result = try? await run(tool: "ffmpeg", arguments: [
+            "-hide_banner", "-nostats", "-i", url.path,
+            "-af", "astats=measure_perchannel=none",
+            "-f", "null", "-"
+        ]) else {
+            return nil
+        }
+        return parseRMSLevel(from: result.error)
+    }
+
+    private static func residualRMSLevel(input: URL, output: URL) async -> Double? {
+        // residual = input + (−output): invert the output's polarity and sum
+        // without normalising, so the mix is a true sample-wise difference.
+        guard let result = try? await run(tool: "ffmpeg", arguments: [
+            "-hide_banner", "-nostats", "-i", input.path, "-i", output.path,
+            "-filter_complex",
+            "[1:a]aeval=-val(0):c=same[inv];"
+                + "[0:a][inv]amix=inputs=2:duration=shortest:normalize=0[res];"
+                + "[res]astats=measure_perchannel=none[out]",
+            "-map", "[out]", "-f", "null", "-"
+        ]) else {
+            return nil
+        }
+        return parseRMSLevel(from: result.error)
+    }
+
+    /// Pulls the overall RMS level (dB) from an `astats` log line, e.g.
+    /// `RMS level dB: -21.891707`.
+    private static func parseRMSLevel(from log: String) -> Double? {
+        let marker = "RMS level dB:"
+        let value = log
+            .split(whereSeparator: \.isNewline)
+            .last { $0.contains(marker) }?
+            .components(separatedBy: marker)
+            .last?
+            .trimmingCharacters(in: .whitespaces)
+        return value.flatMap(Double.init)
     }
 
     /// Best-effort duration used for positioning an audio fade-out.

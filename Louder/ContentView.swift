@@ -46,6 +46,51 @@ private struct TrafficLightDropBorder: Shape {
     }
 }
 
+/// A radial ring of small arrows that all point inward toward the center.
+/// Driven by `progress` (0 → 1): at 0 the arrows sit on the outer radius; as
+/// progress climbs they slide inward at a constant size, fading in then back
+/// out, so a single eased run reads as arrows that appear and move toward the
+/// center before disappearing. Only the upper arc is drawn (the bottom three
+/// positions are skipped) so the arrows never crowd the wider lower half of the
+/// illustration.
+private struct DropBeacon: View {
+    /// 0 = outer (just appearing), 1 = inner & faded out.
+    var progress: CGFloat
+
+    private let count = 8
+    // Skip the bottom three slots (bottom-right, bottom, bottom-left) so arrows
+    // only beckon from the top and sides.
+    private let skipped: Set<Int> = [3, 4, 5]
+    // Kept further out and stopped early so even at the end of the run the arrow
+    // tips never overlap the illustration inside the ring.
+    private let outerRadius: CGFloat = 60
+    private let innerRadius: CGFloat = 44
+
+    var body: some View {
+        let radius = outerRadius + (innerRadius - outerRadius) * progress
+        // Fade in then out across the run so the arrows "appear" and move inward
+        // rather than starting at full strength. Size never changes.
+        let opacity = sin(Double(progress) * .pi) * 0.55
+
+        ZStack {
+            ForEach(0..<count, id: \.self) { i in
+                if !skipped.contains(i) {
+                    let angle = (CGFloat(i) / CGFloat(count)) * 2 * .pi
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        // Rotate each arrow so its "down" direction points at the
+                        // center: top→down, right→left, left→right.
+                        .rotationEffect(.radians(Double(angle)))
+                        .offset(x: radius * sin(angle), y: -radius * cos(angle))
+                }
+            }
+        }
+        .opacity(opacity)
+        .allowsHitTesting(false)
+    }
+}
+
 struct ContentView: View {
     private static let compareSelection = "compare"
 
@@ -53,15 +98,26 @@ struct ContentView: View {
     let comparisonPlayer: ComparisonPlayer
     @State private var isTargeted = false
     @State private var hoveredSeriesID: UUID?
+    @State private var showSignalChainInfo = false
+    /// Bumped to (re)play the one-shot drop-beacon animation: on appear, when
+    /// the app returns to the foreground, and on a window tap in the idle state.
+    @State private var beaconTrigger = 0
+    @State private var filenameHoveredSeriesID: UUID?
     @State private var selectedVersionID: UUID?
     @AppStorage(ProcessingPreset.preferenceKey)
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
+    @AppStorage(OutputResolution.preferenceKey)
+    private var outputResolutionRawValue = OutputResolution.persisted.rawValue
 
     private var selectedPreset: ProcessingPreset {
         let stored = ProcessingPreset(rawValue: selectedPresetRawValue) ?? .gentleBoostDenoise
         return ProcessingPreset.pickerCases.contains(stored)
             ? stored
             : (ProcessingPreset.pickerCases.first ?? .gentleBoostDenoise)
+    }
+
+    private var outputResolution: OutputResolution {
+        OutputResolution(rawValue: outputResolutionRawValue) ?? .uhd4k
     }
 
     private var processingItem: DropQueue.Item? {
@@ -89,6 +145,12 @@ struct ContentView: View {
     private var focusedSeries: LoudnessSeries? {
         if let hoveredSeriesID {
             return queue.series.first { $0.id == hoveredSeriesID }
+        }
+        // Hovering a filename focuses that line for the assessment cards and
+        // raises it to the top of the graph (via selected styling), but keeps
+        // the real, undistorted line view — only the graph itself spreads.
+        if let filenameHoveredSeriesID {
+            return queue.series.first { $0.id == filenameHoveredSeriesID }
         }
         if let activeSeriesID = comparisonPlayer.activeSeriesID {
             return queue.series.first { $0.id == activeSeriesID }
@@ -142,6 +204,19 @@ struct ContentView: View {
         return abs(series.metrics.integratedLUFS - target)
     }
 
+    /// Among the current batch's re-encoded outputs, the smallest file. `nil`
+    /// unless at least two outputs were actually re-encoded (so the star marks a
+    /// genuine size winner in a Compare batch).
+    private var bestSizeSeriesID: UUID? {
+        let sized = focusedSourceOutputs.filter {
+            $0.metrics.videoReencoded && $0.metrics.outputBytes != nil
+        }
+        guard sized.count > 1 else { return nil }
+        return sized.min { lhs, rhs in
+            (lhs.metrics.outputBytes ?? .max) < (rhs.metrics.outputBytes ?? .max)
+        }?.id
+    }
+
     private var processingSelection: Binding<String> {
         Binding(
             get: {
@@ -162,6 +237,7 @@ struct ContentView: View {
                             addFades: AudioFades.persisted,
                             trimSilence: TrimSilence.persisted,
                             renameOriginal: RenameOriginal.persisted,
+                            resolution: outputResolution,
                             stages: StudioBoothStages.all
                         )
                     }
@@ -209,6 +285,7 @@ struct ContentView: View {
             addFades: AudioFades.persisted,
             trimSilence: TrimSilence.persisted,
             renameOriginal: RenameOriginal.persisted,
+            resolution: outputResolution,
             stages: StudioBoothStages.all
         )
     }
@@ -248,6 +325,11 @@ struct ContentView: View {
             .frame(minHeight: 350)
             .background(.background)
             .ignoresSafeArea(.container, edges: .top)
+            .contentShape(Rectangle())
+            // Tapping anywhere in the idle window replays the drop beacon.
+            .onTapGesture {
+                if isInitialState { playDropBeacon() }
+            }
             .onDrop(of: [.fileURL], isTargeted: $isTargeted, perform: handleDrop)
             .onExitCommand {
                 if queue.canCancel {
@@ -267,13 +349,52 @@ struct ContentView: View {
                     style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [8])
                 )
 
-            VStack(spacing: 12) {
-                loudnessChart
-                statusDescription
-                processingControls
+            Group {
+                if isInitialState {
+                    // Idle: keep the picker + quality pair at the window's exact
+                    // vertical center by giving the regions above (illustration)
+                    // and below (drop hint) equal flexible height.
+                    VStack(spacing: 0) {
+                        VStack(spacing: 0) {
+                            Spacer(minLength: 0)
+                            loudnessChart
+                        }
+                        .frame(maxHeight: .infinity)
 
-                if let focusedSeries {
-                    metrics(for: focusedSeries)
+                        VStack(spacing: 12) {
+                            processingControls
+                            outputQualityControl
+                        }
+                        .padding(.top, 4)
+                        .padding(.bottom, 16)
+
+                        VStack(spacing: 0) {
+                            statusDescription
+                            Spacer(minLength: 0)
+                        }
+                        .frame(maxHeight: .infinity)
+                    }
+                    // Nudge the whole idle block down slightly for better balance.
+                    .offset(y: 24)
+                } else {
+                    VStack(spacing: 12) {
+                        loudnessChart
+
+                        if processingItem != nil {
+                            // While processing, keep the filename + progress on top.
+                            statusDescription
+                            processingControls
+                        } else {
+                            // Results: the preset picker sits right under the chart,
+                            // above the list of generated files.
+                            processingControls
+                            statusDescription
+                        }
+
+                        if let focusedSeries {
+                            metrics(for: focusedSeries)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 24)
@@ -313,20 +434,40 @@ struct ContentView: View {
             .frame(height: 86)
             .padding(.horizontal, 8)
         } else if processingItem == nil {
-            // Idle empty state: show the glyph as a centered anchor.
-            Image("LouderForeground")
-                .resizable()
-                .renderingMode(.template)
-                .scaledToFit()
-                .frame(width: 50, height: 50)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-                .frame(height: 86)
-                .padding(.horizontal, 8)
+            // Idle empty state: a ring of small arrows points inward at the app
+            // icon's foreground mark. On foreground (or a window tap) the arrows
+            // appear and travel toward the center once, beckoning the user to
+            // drop a file. A keyframe animator samples the motion each frame so
+            // the arrows can fade in then out without changing size.
+            ZStack {
+                DropBeacon(progress: 1)
+                    .keyframeAnimator(initialValue: CGFloat(1), trigger: beaconTrigger) { _, value in
+                        DropBeacon(progress: value)
+                    } keyframes: { _ in
+                        KeyframeTrack {
+                            MoveKeyframe(0)
+                            CubicKeyframe(1, duration: 0.9)
+                        }
+                    }
+                IconForegroundMark()
+                    .frame(width: 58, height: 40)
+            }
+            .frame(height: 88)
+            .padding(.horizontal, 8)
+            .onAppear { playDropBeacon() }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                playDropBeacon()
+            }
         }
         // While processing with no series yet, render nothing so the status and
         // picker stay vertically centered instead of being pushed down by an
         // empty chart placeholder.
+    }
+
+    /// Plays the drop-beacon arrows once: each run, the arrows appear at the
+    /// outer radius, travel inward at a constant size, and fade out.
+    private func playDropBeacon() {
+        beaconTrigger += 1
     }
 
     @ViewBuilder
@@ -357,11 +498,12 @@ struct ContentView: View {
             VStack(spacing: 5) {
                 if statusNotices.isEmpty {
                     if !focusedSourceOutputs.isEmpty {
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: 0) {
                             ForEach(focusedSourceOutputs) { series in
                                 fileRow(for: series)
                             }
                         }
+                        .frame(maxWidth: .infinity)
                     } else if let focusedSeries {
                         revealInFinderButton(for: focusedSeries)
                     } else if let completedItem = latestCompletedItem {
@@ -371,7 +513,7 @@ struct ContentView: View {
                             preset: completedItem.preset
                         )
                     } else {
-                        Text("\(processingPathDescription)\nDrop videos here or on the Dock icon")
+                        Text("Drop videos here or on the Dock icon")
                             .font(.callout)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -455,6 +597,7 @@ struct ContentView: View {
         return HStack(spacing: 7) {
             Button {
                 selectedVersionID = series.id
+                comparisonPlayer.toggle(series)
             } label: {
                 HStack(spacing: 7) {
                     Image(systemName: iconName)
@@ -464,18 +607,9 @@ struct ContentView: View {
                         .truncationMode(.middle)
                     Spacer(minLength: 4)
                 }
-                .fontWeight(isFocused ? .medium : .regular)
-                .opacity(isFocused ? 1 : 0.5)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .onHover { hovering in
-                if hovering {
-                    hoveredSeriesID = series.id
-                } else if hoveredSeriesID == series.id {
-                    hoveredSeriesID = nil
-                }
-            }
             Button {
                 NSWorkspace.shared.activateFileViewerSelecting([series.url])
             } label: {
@@ -485,6 +619,24 @@ struct ContentView: View {
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help("Reveal in Finder")
+        }
+        .fontWeight(isFocused ? .medium : .regular)
+        .opacity(isFocused ? 1 : 0.5)
+        // Pad the whole row and give it a contiguous hit area so the hover
+        // highlight is edge-to-edge with no dead gaps between rows.
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(
+            isFocused ? Color.primary.opacity(0.06) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 6)
+        )
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            if hovering {
+                filenameHoveredSeriesID = series.id
+            } else if filenameHoveredSeriesID == series.id {
+                filenameHoveredSeriesID = nil
+            }
         }
     }
 
@@ -571,7 +723,170 @@ struct ContentView: View {
         }
         .labelsHidden()
         .pickerStyle(.menu)
+        .fixedSize()
         .disabled(!queue.isIdle)
+        // Float the info button just to the right of the (centered) dropdown so
+        // it never shifts the dropdown off the window's horizontal center.
+        .overlay(alignment: .trailing) {
+            Button {
+                showSignalChainInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 14))
+            }
+            .buttonStyle(.borderless)
+            .help("Show the signal chain applied for this preset")
+            .popover(isPresented: $showSignalChainInfo, arrowEdge: .bottom) {
+                signalChainInfo
+            }
+            .offset(x: 28)
+        }
+    }
+
+    /// Popover content: a little schematic of connected stompboxes describing the
+    /// signal chain the voice passes through for the current selection, plus a
+    /// per-step breakdown of the model and parameters applied. In Compare mode
+    /// every preset's chain is listed.
+    @ViewBuilder
+    private var signalChainInfo: some View {
+        if queue.compareMode {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(ProcessingPreset.comparePresets) { preset in
+                        VStack(alignment: .leading, spacing: 10) {
+                            Label(preset.title, systemImage: preset.iconName)
+                                .font(.subheadline.weight(.semibold))
+                            signalChainRow(for: preset)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            signalChainDetails(for: preset)
+                        }
+                        if preset != ProcessingPreset.comparePresets.last {
+                            Divider()
+                        }
+                    }
+                }
+                .padding(18)
+            }
+            .frame(width: 380, height: 460)
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    signalChainRow(for: selectedPreset)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Divider()
+                    signalChainDetails(for: selectedPreset)
+                }
+                .padding(18)
+            }
+            .frame(width: 360)
+            .frame(maxHeight: 520)
+        }
+    }
+
+    /// Per-step breakdown: icon, step name, and the model/parameters it applies.
+    private func signalChainDetails(for preset: ProcessingPreset) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(preset.signalChain.enumerated()), id: \.element.id) { index, step in
+                HStack(alignment: .top, spacing: 9) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.accentColor.opacity(0.14))
+                        Image(systemName: step.systemImage)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    .frame(width: 22, height: 22)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(index + 1). \(step.name)")
+                            .font(.subheadline.weight(.semibold))
+                        Text(step.detail)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if !step.docs.isEmpty {
+                            HStack(spacing: 12) {
+                                ForEach(step.docs) { doc in
+                                    Link(destination: doc.url) {
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "arrow.up.right.square")
+                                            Text(doc.title)
+                                        }
+                                        .font(.caption2.weight(.medium))
+                                    }
+                                }
+                            }
+                            .padding(.top, 1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// A horizontal run of pedals connected by a cable, with short in/out stubs
+    /// at each end to suggest signal flow.
+    private func signalChainRow(for preset: ProcessingPreset) -> some View {
+        let steps = preset.signalChain
+        return HStack(alignment: .top, spacing: 0) {
+            signalCable
+            ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                if index > 0 { signalCable }
+                stompbox(step)
+            }
+            signalCable
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// A short length of patch cable, vertically aligned to a 44pt pedal's center.
+    private var signalCable: some View {
+        Rectangle()
+            .fill(Color.secondary.opacity(0.45))
+            .frame(width: 12, height: 2)
+            .padding(.top, 21)
+    }
+
+    private func stompbox(_ step: SignalStep) -> some View {
+        VStack(spacing: 5) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 9)
+                    .fill(Color.accentColor.opacity(0.14))
+                RoundedRectangle(cornerRadius: 9)
+                    .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
+                Image(systemName: step.systemImage)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+            }
+            .frame(width: 44, height: 44)
+            Text(step.name)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .frame(width: 58)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// True before any file has been processed — the idle drop screen. The
+    /// output-quality control only appears here so it reads as a global setting.
+    private var isInitialState: Bool {
+        queue.series.isEmpty && queue.isIdle && processingItem == nil
+    }
+
+    private var outputQualityControl: some View {
+        Picker("Output quality", selection: Binding(
+            get: { outputResolution },
+            set: { outputResolutionRawValue = $0.rawValue }
+        )) {
+            ForEach(OutputResolution.allCases) { resolution in
+                Text(resolution.label).tag(resolution)
+            }
+        }
+        .labelsHidden()
+        .pickerStyle(.segmented)
+        .controlSize(.small)
+        .fixedSize()
+        .help("Maximum output resolution. Recordings above the cap are downscaled and re-encoded to H.264; anything at or below it is copied untouched.")
     }
 
     /// Subtitle describing the processing path that will run for the current
@@ -586,7 +901,7 @@ struct ContentView: View {
     private func metrics(for series: LoudnessSeries) -> some View {
         HStack(spacing: 8) {
             metricCard(
-                title: "Loudness · \(signed(series.metrics.integratedLUFS, digits: 1)) LUFS",
+                title: "Loud",
                 value: loudnessSummary(for: series),
                 detail: loudnessAssessment(for: series),
                 tint: loudnessTint(for: series),
@@ -594,16 +909,52 @@ struct ContentView: View {
                 help: "Perceived loudness versus the original. Roughly every 10 LU doubles or halves how loud it sounds, so the percentage reflects the audible change, not the raw level."
             )
             metricCard(
-                title: noiseTitle(for: series),
-                value: noiseSummary(for: series),
-                detail: noiseAssessment(for: series),
-                tint: noiseTint(for: series),
+                title: isolationTitle(for: series),
+                value: isolationSummary(for: series),
+                detail: isolationDetail(for: series),
+                tint: isolationTint(for: series),
                 isBest: series.id == bestNoiseSeriesID,
-                help: "Perceived background noise versus the original, estimated from active and quiet sections. The percentage reflects how much more or less noise you'd hear; this is a practical estimate, not a clean-reference measurement."
+                help: "How much of the prepared audio the isolation model removed as non-voice sound — background, hiss, the tail of a room — measured by comparing the audio just before and after the model ran. A higher figure means the model did more work; it isn't a voice-quality score. The note adds the change in background noise versus the original where there are enough quiet gaps to estimate it."
             )
             trimmedCard(for: series)
+            sizeCard(for: series)
         }
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Shown only when the video stream was actually re-encoded (downscale to the
+    /// chosen quality, or a trim re-encode), reporting the file-size change.
+    @ViewBuilder
+    private func sizeCard(for series: LoudnessSeries) -> some View {
+        if series.metrics.videoReencoded,
+           let originalBytes = series.metrics.originalBytes,
+           let outputBytes = series.metrics.outputBytes {
+            let formatter = ByteCountFormatter()
+            let before = formatter.string(fromByteCount: originalBytes)
+            let after = formatter.string(fromByteCount: outputBytes)
+            let delta = outputBytes - originalBytes
+            let shrank = delta < 0
+            metricCard(
+                title: "Size",
+                value: "\(before) → \(after)",
+                detail: sizeDetail(for: series, delta: delta, shrank: shrank),
+                tint: shrank ? .green : .secondary,
+                isBest: series.id == bestSizeSeriesID,
+                help: "How the output file size compares to the original. Shown only when the video was re-encoded — downscaled to the chosen output quality or re-encoded for a silence trim. Files at or below the quality cap are copied untouched and have no size change."
+            )
+        }
+    }
+
+    private func sizeDetail(for series: LoudnessSeries, delta: Int64, shrank: Bool) -> String {
+        guard let original = series.metrics.originalBytes, original > 0 else {
+            return shrank ? "Smaller after re-encode" : "Re-encoded"
+        }
+        let percent = abs(Double(delta) / Double(original) * 100)
+        if percent < 0.5 {
+            return "About the same after re-encode"
+        }
+        let rounded = Int(percent.rounded())
+        return shrank ? "\(rounded)% smaller after re-encode" : "\(rounded)% larger after re-encode"
     }
 
     private func metricCard(
@@ -632,10 +983,13 @@ struct ContentView: View {
             .foregroundStyle(.secondary)
             Text(value)
                 .font(.callout.weight(.semibold))
+                // Reserve two lines so cards keep a constant height whether the
+                // value wraps or not, so the layout doesn't jump between files.
+                .lineLimit(2, reservesSpace: true)
             Text(detail)
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 10)
@@ -656,6 +1010,7 @@ struct ContentView: View {
                         addFades: AudioFades.persisted,
                         trimSilence: TrimSilence.persisted,
                         renameOriginal: RenameOriginal.persisted,
+                        resolution: outputResolution,
                         stages: StudioBoothStages.all
                     )
                 }
@@ -688,7 +1043,8 @@ struct ContentView: View {
     }
 
     private func loudnessAssessment(for series: LoudnessSeries) -> String {
-        if hoveredSeriesID == series.id || comparisonPlayer.activeSeriesID == series.id {
+        if hoveredSeriesID == series.id || filenameHoveredSeriesID == series.id
+            || comparisonPlayer.activeSeriesID == series.id {
             return series.displayName
         }
         guard let preset = series.preset else { return "Original recording" }
@@ -705,54 +1061,59 @@ struct ContentView: View {
         return distance <= 1 ? .positive : .caution
     }
 
-    private func noiseTitle(for series: LoudnessSeries) -> String {
-        guard let snr = series.metrics.estimatedSNR else {
-            return "Noise estimate"
-        }
-        return "Noise estimate · \(signed(snr, digits: 0, showPlus: false)) dB SNR"
+    private func isolationTitle(for series: LoudnessSeries) -> String {
+        "Noise"
     }
 
-    private func noiseSummary(for series: LoudnessSeries) -> String {
-        guard let snr = series.metrics.estimatedSNR else {
-            return "Unknown"
-        }
-        if !series.isOriginal,
+    private func isolationSummary(for series: LoudnessSeries) -> String {
+        if series.isOriginal { return "Untouched" }
+        guard series.preset?.isolationLabel != nil else { return "No isolation" }
+        guard let removal = series.metrics.isolationRemoval else { return "—" }
+        let percent = removal * 100
+        if percent < 1 { return "<1% removed" }
+        return "≈\(percentString(percent)) removed"
+    }
+
+    private func isolationDetail(for series: LoudnessSeries) -> String {
+        if series.isOriginal { return "Original recording" }
+        // Prefer the concrete background-noise change versus the original when we
+        // could estimate it; otherwise describe the magnitude of the cleanup.
+        if let snr = series.metrics.estimatedSNR,
            let originalSNR = matchingOriginal?.metrics.estimatedSNR {
             let change = snr - originalSNR
             if abs(change) <= 0.5 {
-                return "About the same"
+                return "About as noisy as the original"
             }
-            // Higher SNR means a lower noise level, so the noise change in dB is -change.
             let percent = abs(perceivedPercent(fromDecibels: -change))
-            return "≈\(percentString(percent)) \(change > 0 ? "less noise" : "more noise")"
+            return "≈\(percentString(percent)) \(change > 0 ? "less" : "more") background noise"
         }
-        switch snr {
-        case 30...: return "Barely audible"
-        case 20..<30: return "Slight"
-        case 15..<20: return "Noticeable"
-        default: return "Prominent"
+        guard let removal = series.metrics.isolationRemoval else {
+            return "Cleaned non-voice sound"
         }
-    }
-
-    private func noiseAssessment(for series: LoudnessSeries) -> String {
-        guard let snr = series.metrics.estimatedSNR else {
-            return "Not enough quiet gaps to judge"
-        }
-        switch snr {
-        case 30...: return "Low concern"
-        case 20..<30: return "Usually fine"
-        case 15..<20: return "May distract"
-        default: return "Likely distracting"
+        // Removed non-voice content is low-energy even when clearly audible (a
+        // noise floor ~20 dB down is only ~1% of the energy), so these buckets
+        // are scaled to that reality rather than to a flat percentage.
+        switch removal {
+        case 0.10...: return "Heavy cleanup"
+        case 0.04..<0.10: return "Moderate cleanup"
+        case 0.01..<0.04: return "Light cleanup"
+        default: return "Light touch — source was clean"
         }
     }
 
-    private func noiseTint(for series: LoudnessSeries) -> Color {
-        guard let snr = series.metrics.estimatedSNR else { return .secondary }
-        switch snr {
-        case 20...: return .positive
-        case 15..<20: return .caution
-        default: return .critical
+    private func isolationTint(for series: LoudnessSeries) -> Color {
+        if series.isOriginal { return .secondary }
+        // The raw amount removed isn't inherently good or bad. But when we can
+        // estimate it, a measurable drop in background noise versus the original
+        // is a genuinely positive outcome (green); an increase is a caution.
+        // Without a reliable estimate, stay neutral.
+        if let snr = series.metrics.estimatedSNR,
+           let originalSNR = matchingOriginal?.metrics.estimatedSNR {
+            let change = snr - originalSNR
+            if change > 0.5 { return .positive }
+            if change < -0.5 { return .caution }
         }
+        return .secondary
     }
 
     private func signed(

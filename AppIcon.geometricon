@@ -2,11 +2,11 @@
   "backgroundHex" : "#EFF1F5",
   "backgroundLayer" : "dotted",
   "cloneOpacityVariation" : 0,
-  "cloneScale" : 1,
+  "cloneScale" : 1.2,
   "cloneScaleVariation" : 0,
   "cornerRadius" : 2,
   "cornerRadiusVariation" : 0,
-  "createdAt" : "2026-06-22T01:17:33Z",
+  "createdAt" : "2026-06-22T04:26:22Z",
   "customLayerBlendModes" : [
     "darken",
     "darken"

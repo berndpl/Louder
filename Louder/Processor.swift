@@ -1,5 +1,29 @@
 import Foundation
 
+/// A documentation link for a model or framework used by a signal step.
+struct DocLink: Identifiable, Sendable {
+    let id = UUID()
+    let title: String
+    let url: URL
+
+    init(_ title: String, _ urlString: String) {
+        self.title = title
+        self.url = URL(string: urlString)!
+    }
+}
+
+/// One stompbox in a preset's signal chain, used by the info popover to draw a
+/// little schematic of pedals the audio passes through, in order.
+struct SignalStep: Identifiable, Sendable {
+    let id = UUID()
+    let name: String
+    let systemImage: String
+    /// Plain-language detail: which model runs and the parameters applied.
+    let detail: String
+    /// Documentation links for the model/framework this step uses.
+    let docs: [DocLink]
+}
+
 enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     case boost
     case boostDenoise
@@ -48,6 +72,106 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
 
     var fileSuffix: String { title }
 
+    /// Ordered schematic of the signal chain applied to the voice, expressed as
+    /// connected "stompboxes" for the info popover. Mirrors `audioStages` plus
+    /// the terminal render (Studio EQ/compression and the loudness boost), and
+    /// names the actual model and parameters used at each step.
+    var signalChain: [SignalStep] {
+        var steps: [SignalStep] = []
+        switch self {
+        case .boost:
+            break
+        case .boostDenoise, .gentleBoostDenoise:
+            steps.append(Self.denoiseStep)
+        case .studioBooth:
+            steps.append(Self.denoiseStep)
+            if let booth = studioBooth {
+                steps.append(SignalStep(
+                    name: "Studio EQ",
+                    systemImage: "slider.horizontal.3",
+                    detail: "Corrective tone shaping (ffmpeg biquads): high-pass at 80 Hz, then "
+                        + "\(Self.db(booth.warmth)) low-shelf @200 Hz (warmth), "
+                        + "\(Self.db(booth.boomCut)) @120 Hz (cut boom), "
+                        + "\(Self.db(booth.boxCut)) @350 Hz (cut box), "
+                        + "\(Self.db(booth.presenceShelf)) treble shelf @3.5 kHz and "
+                        + "\(Self.db(booth.presencePeak)) @4.5 kHz (presence), "
+                        + "\(Self.db(booth.deHarsh)) @7.5 kHz (de-harsh).",
+                    docs: [DocLink("ffmpeg audio filters", "https://ffmpeg.org/ffmpeg-filters.html#Audio-Filters")]
+                ))
+                steps.append(SignalStep(
+                    name: "Compress",
+                    systemImage: "rectangle.compress.vertical",
+                    detail: "ffmpeg acompressor: \(Self.num(booth.compRatio)):1 ratio, −20 dB "
+                        + "threshold, 20 ms attack, 160 ms release — evens out level dynamics for a steadier, broadcast feel.",
+                    docs: [DocLink("ffmpeg acompressor", "https://ffmpeg.org/ffmpeg-filters.html#acompressor")]
+                ))
+            }
+        case .focus:
+            steps.append(SignalStep(
+                name: "Noise Gate",
+                systemImage: "speaker.slash.fill",
+                detail: "Apple SoundAnalysis (SNClassifySoundRequest, version1 classifier). Flags "
+                    + "windows where speech confidence < 0.30 while a non-speech class scores ≥ 0.55, "
+                    + "then ducks those windows by ~−22 dB (linear gain 0.08). Suppresses intermittent "
+                    + "background events between words, not noise that overlaps the voice.",
+                docs: [DocLink("Apple SoundAnalysis", "https://developer.apple.com/documentation/soundanalysis")]
+            ))
+            steps.append(Self.denoiseStep)
+        case .clean:
+            steps.append(SignalStep(
+                name: "AI Enhance",
+                systemImage: "wand.and.stars",
+                detail: "GTCRN waveform-to-waveform Core ML model (gtcrn_w2w) at 16 kHz, run on-device "
+                    + "in 6 s windows with 2 s overlap-add crossfade to stay responsive on long clips. "
+                    + "Output is band-limited to ~8 kHz (cleaner but duller), then resampled back to 48 kHz.",
+                docs: [
+                    DocLink("GTCRN model", "https://github.com/Xiaobin-Rong/gtcrn"),
+                    DocLink("Core ML", "https://developer.apple.com/documentation/coreml")
+                ]
+            ))
+        }
+
+        let tp = truePeak == truePeak.rounded() ? "−\(Int(-truePeak))" : "−1.5"
+        var loudnessDetail = "ffmpeg loudnorm (two-pass EBU R128) → \(targetLUFS) LUFS integrated, "
+            + "true-peak \(tp) dBTP, loudness range 11 LU. Encoded as 48 kHz AAC-LC."
+        if studioBooth != nil {
+            loudnessDetail += " A 4× oversampled brick-wall limiter (alimiter 0.95) follows to catch "
+                + "inter-sample peaks before AAC."
+        }
+        steps.append(SignalStep(
+            name: "Loudness",
+            systemImage: "speaker.wave.3.fill",
+            detail: loudnessDetail,
+            docs: [
+                DocLink("ffmpeg loudnorm", "https://ffmpeg.org/ffmpeg-filters.html#loudnorm"),
+                DocLink("EBU R128", "https://tech.ebu.ch/publications/r128")
+            ]
+        ))
+        return steps
+    }
+
+    /// The shared DeepFilterNet denoise pedal (used by several presets).
+    private static let denoiseStep = SignalStep(
+        name: "Denoise",
+        systemImage: "wand.and.sparkles",
+        detail: "DeepFilterNet3 (ONNX), a full-band 48 kHz deep-learning speech denoiser running as a "
+            + "bundled native binary on-device. Removes steady background noise and hiss while keeping the voice intact.",
+        docs: [DocLink("DeepFilterNet", "https://github.com/Rikorose/DeepFilterNet")]
+    )
+
+    /// Format a dB gain with an explicit sign and a typographic minus.
+    private static func db(_ value: Double) -> String {
+        let magnitude = num(abs(value))
+        if value > 0 { return "+\(magnitude) dB" }
+        if value < 0 { return "−\(magnitude) dB" }
+        return "0 dB"
+    }
+
+    /// Format a number, dropping a trailing `.0`.
+    private static func num(_ value: Double) -> String {
+        value == value.rounded() ? String(Int(value)) : String(format: "%g", value)
+    }
+
     var iconName: String {
         switch self {
         case .boost: "bolt.fill"
@@ -68,6 +192,17 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
 
     var usesDenoising: Bool {
         self != .boost
+    }
+
+    /// Human label for the isolation model a preset runs, shown in the
+    /// "Isolation" assessment box. `nil` for presets that don't isolate.
+    var isolationLabel: String? {
+        switch self {
+        case .boost: nil
+        case .clean: "AI enhance"
+        case .focus: "Gate + DeepFilterNet"
+        case .boostDenoise, .gentleBoostDenoise, .studioBooth: "DeepFilterNet"
+        }
     }
 
     /// Ordered, side-effect-free WAV stages applied to the prepared audio before
@@ -218,6 +353,44 @@ enum TrimSilence {
     }
 }
 
+/// Output video quality, expressed as a maximum height the video may keep.
+/// A source at or below the cap is copied untouched (the long-standing
+/// behavior); a source above the cap is downscaled to the cap and re-encoded to
+/// broadly-compatible H.264.
+enum OutputResolution: String, Sendable, CaseIterable, Identifiable {
+    case uhd4k = "4K"
+    case fullHD = "1080p"
+
+    var id: String { rawValue }
+
+    /// Maximum video height kept for this quality.
+    var capHeight: Int {
+        switch self {
+        case .uhd4k: return 2160
+        case .fullHD: return 1080
+        }
+    }
+
+    /// Short label for the segmented control.
+    var label: String { rawValue }
+
+    static let preferenceKey = "outputResolution"
+
+    /// Defaults to `.uhd4k`, preserving today's copy-untouched behavior for the
+    /// typical (≤4K) recording.
+    static var persisted: OutputResolution {
+        guard let raw = UserDefaults.standard.string(forKey: preferenceKey),
+              let value = OutputResolution(rawValue: raw) else {
+            return .uhd4k
+        }
+        return value
+    }
+
+    static func persist(_ value: OutputResolution) {
+        UserDefaults.standard.set(value.rawValue, forKey: preferenceKey)
+    }
+}
+
 enum MetricConfidence: String, Sendable {
     case high
     case medium
@@ -236,6 +409,16 @@ struct AudioMetrics: Sendable {
     let estimatedSNR: Double?
     let snrConfidence: MetricConfidence
     let points: [LoudnessPoint]
+    /// Share of the prepared signal's energy the isolation stage removed (0…1),
+    /// or `nil` for the original / presets without an isolation stage.
+    var isolationRemoval: Double? = nil
+    /// Size in bytes of the original input file (baseline for the Size card).
+    var originalBytes: Int64? = nil
+    /// Size in bytes of the produced output file.
+    var outputBytes: Int64? = nil
+    /// Whether the video stream was re-encoded (downscale and/or trim). The Size
+    /// card only appears when this is true.
+    var videoReencoded: Bool = false
 }
 
 struct LoudnessSeries: Identifiable, Sendable {
@@ -293,6 +476,7 @@ enum Processor {
         addFades: Bool,
         trimSilence: Bool,
         renameOriginal: Bool,
+        resolution: OutputResolution,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async throws -> ProcessingResult {
@@ -376,6 +560,7 @@ enum Processor {
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
+                resolution: resolution,
                 stages: stages,
                 onProgress: onProgress
             )
@@ -390,6 +575,10 @@ enum Processor {
             workDir: workDirectory,
             onProgress: onProgress
         )
+        let isolationRemoval = await FFmpeg.isolationRemoval(
+            input: preparedURL,
+            output: audioURL
+        )
 
         var result = try await processReplacement(
             sourceURL: url,
@@ -397,10 +586,12 @@ enum Processor {
             originalSeries: originalSeries,
             preset: preset,
             audioURL: audioURL,
+            isolationRemoval: isolationRemoval,
             duration: duration,
             addFades: addFades,
             trimPlan: trimPlan,
             renameOriginal: renameOriginal,
+            resolution: resolution,
             stages: stages,
             onProgress: onProgress
         )
@@ -442,10 +633,12 @@ enum Processor {
         originalSeries: LoudnessSeries,
         preset: ProcessingPreset,
         audioURL: URL,
+        isolationRemoval: Double?,
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
         renameOriginal: Bool,
+        resolution: OutputResolution,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async throws -> ProcessingResult {
@@ -456,9 +649,11 @@ enum Processor {
                 originalSeries: originalSeries,
                 preset: preset,
                 audioURL: audioURL,
+                isolationRemoval: isolationRemoval,
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
+                resolution: resolution,
                 stages: stages,
                 onProgress: onProgress
             )
@@ -479,7 +674,8 @@ enum Processor {
         let metrics: AudioMetrics
         do {
             onProgress("Creating \(preset.title)…")
-            try await render(
+            let originalBytes = fileSize(of: sourceURL)
+            let videoReencoded = try await render(
                 sourceURL: sourceURL,
                 audioURL: audioURL,
                 outputURL: tempURL,
@@ -487,11 +683,17 @@ enum Processor {
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
+                resolution: resolution,
                 stages: stages
             )
 
             onProgress("Measuring result…")
-            metrics = try await FFmpeg.audioMetrics(of: tempURL)
+            var measured = try await FFmpeg.audioMetrics(of: tempURL)
+            measured.isolationRemoval = isolationRemoval
+            measured.originalBytes = originalBytes
+            measured.outputBytes = fileSize(of: tempURL)
+            measured.videoReencoded = videoReencoded
+            metrics = measured
             try Task.checkCancellation()
         } catch {
             try? FileManager.default.removeItem(at: backupURL)
@@ -535,16 +737,19 @@ enum Processor {
         originalSeries: LoudnessSeries,
         preset: ProcessingPreset,
         audioURL: URL,
+        isolationRemoval: Double?,
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
+        resolution: OutputResolution,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async throws -> ProcessingResult {
         let outputURL = freeComparisonURL(for: sourceURL, preset: preset)
         do {
             onProgress("Creating \(preset.title)…")
-            try await render(
+            let originalBytes = fileSize(of: sourceURL)
+            let videoReencoded = try await render(
                 sourceURL: sourceURL,
                 audioURL: audioURL,
                 outputURL: outputURL,
@@ -552,12 +757,17 @@ enum Processor {
                 duration: duration,
                 addFades: addFades,
                 trimPlan: trimPlan,
+                resolution: resolution,
                 stages: stages
             )
 
             try Task.checkCancellation()
             onProgress("Measuring result…")
-            let metrics = try await FFmpeg.audioMetrics(of: outputURL)
+            var metrics = try await FFmpeg.audioMetrics(of: outputURL)
+            metrics.isolationRemoval = isolationRemoval
+            metrics.originalBytes = originalBytes
+            metrics.outputBytes = fileSize(of: outputURL)
+            metrics.videoReencoded = videoReencoded
 
             let outputSeries = LoudnessSeries(
                 sourceID: sourceID,
@@ -587,6 +797,7 @@ enum Processor {
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
+        resolution: OutputResolution,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async -> ProcessingResult {
@@ -626,7 +837,8 @@ enum Processor {
 
             do {
                 onProgress("Creating \(preset.title)…")
-                try await render(
+                let originalBytes = fileSize(of: sourceURL)
+                let videoReencoded = try await render(
                     sourceURL: sourceURL,
                     audioURL: audioURL,
                     outputURL: outputURL,
@@ -634,11 +846,19 @@ enum Processor {
                     duration: duration,
                     addFades: addFades,
                     trimPlan: trimPlan,
+                    resolution: resolution,
                     stages: stages
                 )
                 try Task.checkCancellation()
                 onProgress("Measuring \(preset.title)…")
-                let metrics = try await FFmpeg.audioMetrics(of: outputURL)
+                var metrics = try await FFmpeg.audioMetrics(of: outputURL)
+                metrics.isolationRemoval = await FFmpeg.isolationRemoval(
+                    input: preparedURL,
+                    output: audioURL
+                )
+                metrics.originalBytes = originalBytes
+                metrics.outputBytes = fileSize(of: outputURL)
+                metrics.videoReencoded = videoReencoded
                 series.append(LoudnessSeries(
                     sourceID: sourceID,
                     sourceName: sourceURL.lastPathComponent,
@@ -674,8 +894,9 @@ enum Processor {
         duration: Double?,
         addFades: Bool,
         trimPlan: TrimPlan?,
+        resolution: OutputResolution,
         stages: StudioBoothStages
-    ) async throws {
+    ) async throws -> Bool {
         // When trimming, both the video source and the processed-audio input
         // are seeked to the same start so they stay in sync; the output is
         // bounded to the trimmed window length and the audio fades land on the
@@ -687,6 +908,14 @@ enum Processor {
             duration: effectiveDuration,
             stages: stages
         )
+
+        // Downscale only when the source video exceeds the chosen height cap;
+        // anything at or below the cap is copied untouched.
+        let sourceHeight = await FFmpeg.videoHeight(of: sourceURL)
+        let downscaleHeight: Int? = sourceHeight.flatMap {
+            $0 > resolution.capHeight ? resolution.capHeight : nil
+        }
+        let reencodeVideo = (trimPlan?.reencode ?? false) || downscaleHeight != nil
 
         var arguments = ["-hide_banner", "-y"]
         if let trimPlan {
@@ -701,7 +930,12 @@ enum Processor {
             "-map", "1:a:0",
             "-af", audioFilter
         ]
-        if let trimPlan, trimPlan.reencode {
+        if reencodeVideo {
+            // -2 keeps the width auto-computed to an even number, preserving
+            // aspect ratio. H.264 8-bit 4:2:0 for the broadest playback support.
+            if let downscaleHeight {
+                arguments += ["-vf", "scale=-2:\(downscaleHeight)"]
+            }
             arguments += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p"]
         } else {
             arguments += ["-c:v", "copy"]
@@ -723,6 +957,12 @@ enum Processor {
         guard result.exitCode == 0, FileManager.default.fileExists(atPath: outputURL.path) else {
             throw LouderError.processingFailed(FFmpeg.lastLines(of: result.error))
         }
+        return reencodeVideo
+    }
+
+    /// Size in bytes of a file on disk, or `nil` if it can't be read.
+    private static func fileSize(of url: URL) -> Int64? {
+        (try? FileManager.default.attributesOfItem(atPath: url.path)[.size]) as? Int64
     }
 
     private static func filter(
