@@ -4,7 +4,9 @@
 
 Drop a video on it. The voice gets loud and clear. That's it.
 
-If you record screencasts, demos, or meetings with whatever mic you have, the picture looks great but the audio comes out quiet, thin, and hard to follow. Louder fixes that in one drag‑and‑drop: it brings your voice up to a consistent, broadcast‑standard level, cleans up background noise, and trims dead air — then rewrites the file in place. No editor, no plugins, no audio settings to learn.
+<img src="ScreenshotIdle.gif" width="460" alt="Louder's idle window: a leaf icon with arrows briefly sweeping inward toward it, the preset menu set to Louder, a 4K/1080p toggle, and the hint 'Drop videos here or on the Dock icon'">
+
+Recordings from screencasts, demos, and meetings almost always have the same problem: the picture is fine, but the voice comes out quiet, thin, and buried under room noise. Louder is a single‑purpose macOS app that fixes exactly that. You launch it to the small window above, pick a preset once, and drag a file in — it raises your voice to a consistent, broadcast‑standard loudness, removes background noise, and trims the dead air, then writes the result back in place. No timeline, no plugins, nothing to configure.
 
 <img src="Screenshot.png" width="460" alt="Louder showing loudness, isolation, and trim results after comparing presets on a clip">
 
@@ -55,16 +57,16 @@ The Fades preference lives in **Louder → Settings**.
 
 ## Requirements
 
-- macOS
+- macOS on **Apple Silicon** (the bundled DeepFilterNet denoiser is an `arm64` binary)
 - ffmpeg via Homebrew:
 
   ```sh
   brew install ffmpeg
   ```
 
-  Louder looks for `ffmpeg`/`ffprobe` in `/opt/homebrew/bin` (Apple Silicon) and `/usr/local/bin` (Intel). If they're missing it fails gracefully and tells you the command above.
+  Louder looks for `ffmpeg`/`ffprobe` in `/opt/homebrew/bin` (Apple Silicon) and `/usr/local/bin`. If they're missing it fails gracefully and tells you the command above.
 
-DeepFilterNet 0.5.6 and the DeepFilterNet3 model are bundled for Apple Silicon and Intel Macs. Cleanup runs completely locally and does not upload recordings.
+DeepFilterNet 0.5.6 and the DeepFilterNet3 model are bundled (Apple Silicon). Cleanup runs completely locally and does not upload recordings.
 
 ## Building
 
