@@ -8,7 +8,11 @@ Follow the build along in the **[devlog](https://berndpl.github.io/Louder/blog/)
 
 <img src="ScreenshotIdle.gif" width="460" alt="Louder's idle window: a leaf icon with arrows briefly sweeping inward toward it, the preset menu set to Louder, a 4K/1080p toggle, and the hint 'Drop videos here or on the Dock icon'">
 
-Screencasts, demos, and meeting recordings almost always share one problem: the picture is fine, but the voice is quiet, thin, and buried under room noise. Louder is a single-purpose macOS app that fixes exactly that. Pick a preset once, drag a file in, and it raises the voice to a consistent broadcast-standard loudness, removes background noise, trims the dead air, and writes the result back in place. No timeline, no plugins, nothing to configure.
+Screencasts, demos, and meeting recordings almost always share one problem: the picture is fine, but the voice is quiet, thin, and buried under room noise.
+
+Ever recorded a screencast on your EarPods and found the voice just isn't loud enough? You crank it up in post — and now it's loud *and* noisy, every crackle and breath boosted right along with it. This one's for you.
+
+From a janky screen recording to a perfectly shareable video asset in a single step. Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and re-encode — all at once. Pick a preset once and it writes the result back in place. No timeline, no plugins, nothing to configure.
 
 <img src="Screenshot.png" width="460" alt="Louder showing loudness, isolation, and trim results after comparing presets on a clip">
 

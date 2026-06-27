@@ -3,9 +3,22 @@
    with the style picked from the design catalog (style-apply tokens). Structure stays;
    only the tokens change. Neutral defaults shipped so the page renders before theming. */
 
-/* {{FONT_IMPORT}} — blog-new injects the chosen style's webfont @import here (or removes it). */
+/* {{FONT_IMPORT}} — blog-new injects the chosen style's webfont here (vendored locally). */
 
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/inconsolata-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/inconsolata-700.woff2") format("woff2");
+}
 
 :root {
   color-scheme: light;
@@ -133,7 +146,6 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 /* Hero: strong teaser title + short description (+ optional shot) — the product intro */
 .hero {
   padding: 3.5rem 0 4.5rem;
-  border-bottom: 1px solid var(--theme-surface0);
 }
 .hero-with-shot {
   display: grid;
@@ -142,6 +154,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
   align-items: center;
 }
 .hero h1 { margin-top: .3rem; color: var(--theme-accent); font-size: 2.1rem; font-weight: 700; }
+.hero-icon { width: 4rem; height: 4rem; display: block; border-radius: 12px; }
 .tagline { margin-top: .6rem; color: var(--theme-subtext0); font-size: 1.1rem; }
 .short { max-width: 38rem; margin-top: 1.1rem; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.8rem; }
@@ -149,10 +162,147 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 .hero-shot img {
   width: 100%;
   display: block;
-  border: 1px solid var(--theme-surface0);
+  border: 0;
   border-radius: 8px;
 }
 .kicker, .date, .tag, .badge { color: var(--theme-overlay0); font-size: .9rem; }
+
+/* Features — preset cards with a visual processing chain */
+section#features { padding-top: 1rem; border-bottom: 0; }
+section#features > h2 { margin-bottom: .5rem; color: var(--theme-accent); font-size: 1.35rem; font-weight: 700; }
+
+/* Tabs — Features | Presets */
+.tabs {
+  display: flex;
+  gap: .25rem;
+  margin: 0 0 1.4rem;
+  border-bottom: 1px solid var(--theme-surface0);
+}
+.tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: .45rem .7rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--theme-subtext0);
+  cursor: pointer;
+}
+.tab:hover { color: var(--theme-text); }
+.tab.is-active { color: var(--theme-accent); border-bottom-color: var(--theme-accent); }
+.tab-panel { display: none; }
+.tab-panel.is-active { display: block; }
+
+/* Feature list */
+.feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.7rem;
+  max-width: 46rem;
+}
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+.feature-ico {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--theme-mantle);
+}
+.feature-ico .sym {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--theme-accent);
+}
+.feature-list h3 {
+  margin: .25rem 0 .4rem;
+  color: var(--theme-text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.feature-list p {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--theme-subtext0);
+}
+
+.section-lead { max-width: 40rem; margin: 0 0 1.6rem; color: var(--theme-subtext0); }
+.presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.1rem;
+}
+.preset {
+  padding: 1.1rem 1.2rem;
+  background: var(--theme-mantle);
+  border-radius: 10px;
+}
+.preset h3 {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* Inline Lucide icons (ISC), tinted via currentColor */
+.sym {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -.12em;
+  color: var(--theme-subtext0);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.preset h3 .sym { width: 1.15em; height: 1.15em; }
+.preset .sym { color: var(--theme-accent); }
+
+/* Signal chain — single line of single-term, tappable steps */
+.chain {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: .25rem;
+  margin: .8rem 0 .7rem;
+  overflow-x: auto;
+}
+.node {
+  display: inline-flex;
+  align-items: center;
+  gap: .26rem;
+  padding: .2rem .42rem;
+  border: 1px solid var(--theme-surface0);
+  background: var(--theme-base);
+  color: var(--theme-text);
+  font: inherit;
+  font-size: .75rem;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: border-color .12s ease, background .12s ease;
+}
+.node:hover { color: var(--theme-heading); border-color: var(--theme-overlay0); background: var(--theme-mantle); }
+.node.active { font-weight: 700; border-color: var(--theme-overlay0); background: var(--theme-mantle); }
+.node.active .sym { color: var(--theme-accent); }
+.node .sym { width: .95em; height: .95em; }
+.arrow { flex: 0 0 auto; color: var(--theme-overlay0); font-size: .75rem; }
+.step-detail { margin: 0; min-height: 2.7em; color: var(--theme-subtext0); font-size: .9rem; }
 
 /* Posts */
 section { padding: 2rem 0; border-bottom: 1px solid var(--theme-surface0); }
@@ -174,7 +324,6 @@ article.entry .decisions { margin: 1.25rem 0; }
 }
 .decisions > div + div, .grid2 > div + div {
   padding-left: 2rem;
-  border-left: 1px solid var(--theme-surface0);
 }
 .card h3 { margin-bottom: .65rem; }
 .card { background: transparent; border: 0; padding: 0 !important; }
