@@ -187,11 +187,11 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -10px;
+  bottom: -20px;
   display: flex;
   justify-content: center;
   gap: .55rem;
-  z-index: 0;
+  z-index: 2;
 }
 .thumb {
   width: 64px;
