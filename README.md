@@ -77,3 +77,13 @@ A Shortcuts Quick Action was tried first and abandoned: Quick Actions run inside
 ## Non-goals
 
 No editing, format conversion, folder watching, arbitrary audio parameters, or App Store distribution. It's a personal tool that does one thing well.
+
+## Thanks
+
+Louder builds on the work of these projects — and the people behind them: [FFmpeg](https://ffmpeg.org), [DeepFilterNet](https://github.com/Rikorose/DeepFilterNet), [GTCRN](https://github.com/Xiaobin-Rong/gtcrn), [EBU R128](https://tech.ebu.ch/publications/r128), [Inconsolata](https://github.com/googlefonts/Inconsolata), [Lucide](https://lucide.dev), and [Swift &amp; SwiftUI](https://www.swift.org).
+
+## License
+
+Licensed under [PolyForm Noncommercial 1.0.0](LICENSE) — free to use, modify, and share for noncommercial purposes.
+
+Code by Bernd Plontsch and Claude Opus 4.8.
