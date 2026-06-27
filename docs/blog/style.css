@@ -398,10 +398,10 @@ figure img {
   border-radius: 8px;
 }
 figcaption { margin-top: .5rem; color: var(--theme-overlay0); font-size: .9rem; text-align: center; }
-footer { padding: 2rem 0 1rem; color: var(--theme-overlay0); font-size: .9rem; text-align: left; }
+footer { padding: .75rem 0 1rem; color: var(--theme-overlay0); font-size: .9rem; text-align: left; }
 
 /* Thank-you colophon — compact, footer-sized credits above the footer */
-.colophon { border-bottom: 0; padding-top: 3rem; }
+.colophon { border-bottom: 0; padding-top: 3rem; padding-bottom: 0; }
 .colophon > h2 {
   display: flex;
   align-items: center;
