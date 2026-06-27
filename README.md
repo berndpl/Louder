@@ -4,6 +4,8 @@
 
 Drop a video on it. The voice gets loud and clear. That's it.
 
+Follow the build along in the **[devlog](https://berndpl.github.io/Louder/blog/)**.
+
 <img src="ScreenshotIdle.gif" width="460" alt="Louder's idle window: a leaf icon with arrows briefly sweeping inward toward it, the preset menu set to Louder, a 4K/1080p toggle, and the hint 'Drop videos here or on the Dock icon'">
 
 Screencasts, demos, and meeting recordings almost always share one problem: the picture is fine, but the voice is quiet, thin, and buried under room noise. Louder is a single-purpose macOS app that fixes exactly that. Pick a preset once, drag a file in, and it raises the voice to a consistent broadcast-standard loudness, removes background noise, trims the dead air, and writes the result back in place. No timeline, no plugins, nothing to configure.

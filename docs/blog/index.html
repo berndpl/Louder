@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+  Louder devlog — single-page static HTML (blog-new). Newest post first in #posts.
+  Plain static HTML; served by GitHub Pages from /docs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Louder — Devlog</title>
+<link rel="icon" href="img/icon.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="nav-left">
+    <a class="blog-title" href="./"><img class="brand-mark" src="img/icon.png" alt="">Louder</a>
+  </div>
+  <div class="nav-right">
+    <a class="action-link" href="https://github.com/berndpl/Louder/releases/latest">Download</a>
+  </div>
+</header>
+
+<main id="top">
+<header class="hero hero-with-shot">
+  <div class="hero-copy">
+    <h1>Louder</h1>
+    <p class="tagline">Drop a video on it. The voice gets loud and clear. That's it.</p>
+    <p class="short">A single-purpose macOS app for screencasts, demos, and meeting recordings: pick a preset once, drag a file in, and it raises the voice to a consistent broadcast-standard loudness, removes background noise, and writes the result back in place. No timeline, no plugins, nothing to configure.</p>
+    <p class="hero-cta"><a class="action-link" href="https://github.com/berndpl/Louder/releases/latest">Download</a></p>
+  </div>
+  <figure class="hero-shot"><img src="img/hero.png" alt="Louder screenshot"></figure>
+</header>
+
+<section id="posts">
+
+  <article class="entry">
+    <div class="date">2026-06-27 · reset</div>
+    <h3>Reset replaces Undo</h3>
+    <p>The toolbar <code>Undo</code> button became a mode-aware <strong>Reset</strong>. In Compare it confirms deleting every generated variant; in single-process it keeps the new louder file and asks whether to keep or delete the original, then drops back to the initial drop screen. Shipped as 1.1 (Build 4) — the first notarized release since Build 2, bundling everything accumulated since: the Clean AI preset, 4K/1080p output quality, and multi-channel mono downmix.</p>
+    <p>Commit <a href="https://github.com/berndpl/Louder/commit/2a22ec9b9438fd6c1288c81a5a11e30f04af107d"><code>2a22ec9</code></a>.</p>
+  </article>
+
+  <article class="entry">
+    <div class="date">2026-06-23 · release</div>
+    <h3>A Download path and a tighter README</h3>
+    <p>Recorded Build 3 and added a Releases/Download section to the README. Build 3 was a stopgap local install: signed with a Developer ID and Gatekeeper-accepted, but <em>not</em> notarized — no notary credential was available on the machine — so the <code>dist</code> archive was kept for local use only, not distribution. The note flagged a 1.1 minor bump for the Clean preset, 4K/1080p, and downmix that had landed since Build 2.</p>
+    <p>Commits <a href="https://github.com/berndpl/Louder/commit/be45ff2"><code>be45ff2</code></a>, <a href="https://github.com/berndpl/Louder/commit/231b2c4"><code>231b2c4</code></a>.</p>
+  </article>
+
+  <article class="entry">
+    <div class="date">2026-06-22 · hardening</div>
+    <h3>Make in-place rewriting safe to trust</h3>
+    <p>A stability pass from an audit, since Louder overwrites your files where they live. Process launch is now cancel-safe — no terminate on an unlaunched <code>Process</code>. A failed batch rolls back fully, restoring every replaced original. And in-place replacement is atomic on the same volume. If any file fails, its original is left untouched.</p>
+    <p>Commit <a href="https://github.com/berndpl/Louder/commit/53ca6e4a01c3621b2978163f3ddec861267c1424"><code>53ca6e4</code></a>.</p>
+  </article>
+
+  <article class="entry">
+    <div class="date">2026-06-22 · audio</div>
+    <h3>The voice-cleanup pipeline</h3>
+    <p>Added selectable local audio cleanup: DeepFilterNet denoise, gentle FFmpeg denoising, and a GTCRN noise-suppression stage — alongside an unchanged loudness-only mode. Pinned Apple Silicon and Intel DeepFilterNet executables plus the DeepFilterNet3 ONNX model are bundled, so every preset runs entirely on-device.</p>
+    <div class="decisions">
+      <div class="card"><h3>Decided for</h3><ul class="for">
+        <li>Bundling pinned local models — offline, private, recordings never uploaded</li>
+        <li>One persisted preset menu combining loudness target and denoising</li>
+      </ul></div>
+      <div class="card"><h3>Decided against</h3><ul class="against">
+        <li>Any cloud or upload-based processing</li>
+        <li>Arbitrary audio parameters beyond a small set of presets</li>
+      </ul></div>
+    </div>
+    <p>Commits <a href="https://github.com/berndpl/Louder/commit/133ada5"><code>133ada5</code></a>, <a href="https://github.com/berndpl/Louder/commit/5088842"><code>5088842</code></a>.</p>
+  </article>
+
+  <article class="entry">
+    <div class="date">2026-06-22 · identity</div>
+    <h3>An idle window that says &ldquo;drop here&rdquo;</h3>
+    <p>Gave the app its face: a foreground leaf mark and an animated idle-state GIF — arrows briefly sweeping inward toward the icon — with the README intro reworked to lead with it. Then a few passes to match the GIF's size, roundedness, and crop to the static screenshot so the two read as one.</p>
+    <p>Commits <a href="https://github.com/berndpl/Louder/commit/b879f93"><code>b879f93</code></a>, <a href="https://github.com/berndpl/Louder/commit/198b691"><code>198b691</code></a>, <a href="https://github.com/berndpl/Louder/commit/a1e5e11"><code>a1e5e11</code></a>.</p>
+  </article>
+
+  <article class="entry">
+    <div class="date">2026-06-21 · start</div>
+    <h3>The project so far</h3>
+    <p>First public snapshot, history pruned. Louder is a single-purpose macOS app: drag a video onto the Dock icon and it raises the voice to a consistent loudness target, backs up the original to <code>&lt;name&gt; - original.&lt;ext&gt;</code>, and replaces the file in place. It was born from an abandoned Shortcuts Quick Action — Apple's sandboxed <code>siriactionsd</code> daemon can never be granted access to OneDrive/CloudStorage files, but a real app in the user session gets the permission prompt once and works forever.</p>
+    <div class="decisions">
+      <div class="card"><h3>Decided for</h3><ul class="for">
+        <li>A real in-session app — gets OneDrive access once, keeps it</li>
+        <li>Click-to-play A/B comparison of measured loudness curves</li>
+      </ul></div>
+      <div class="card"><h3>Decided against</h3><ul class="against">
+        <li>A Shortcuts Quick Action (sandboxed, can't reach the files)</li>
+        <li>An editor, timeline, or App Store distribution</li>
+      </ul></div>
+    </div>
+    <p>Commit <a href="https://github.com/berndpl/Louder/commit/573a290"><code>573a290</code></a>.</p>
+  </article>
+
+</section>
+</main>
+
+<footer>Louder devlog · seeded from project history · 2026-06-27</footer>
+</body>
+</html>
