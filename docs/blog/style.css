@@ -151,7 +151,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 30rem);
   gap: 1.5rem;
-  align-items: center;
+  align-items: start;
 }
 .hero h1 { margin-top: .3rem; color: var(--theme-accent); font-size: 2.1rem; font-weight: 700; }
 .hero-icon { width: 4rem; height: 4rem; display: block; border-radius: 12px; }
@@ -161,7 +161,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 .cta-primary { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .4rem; }
 .cta-note { color: var(--theme-overlay0); font-size: .8rem; }
 .action-link { white-space: nowrap; }
-.hero-shot { width: 100%; margin: 0; }
+.hero-shot { position: relative; width: 100%; margin: 0; }
 .shots {
   position: relative;
   width: 100%;
@@ -183,11 +183,13 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 }
 .shot.is-active { opacity: 1; }
 .thumbs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
   display: flex;
   justify-content: center;
   gap: .55rem;
-  margin-top: -2.25rem;
-  position: relative;
   z-index: 2;
 }
 .thumb {
