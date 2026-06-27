@@ -164,6 +164,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 .hero-shot { position: relative; width: 92%; margin: 0; }
 .shots {
   position: relative;
+  z-index: 1;
   width: 100%;
   aspect-ratio: 1144 / 1004;
   border-radius: 8px;
@@ -190,7 +191,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
   display: flex;
   justify-content: center;
   gap: .55rem;
-  z-index: 2;
+  z-index: 0;
 }
 .thumb {
   width: 64px;
