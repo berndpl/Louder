@@ -25,13 +25,13 @@
       <a class="action-link secondary" href="https://notes.plontsch.de/about/">Get in touch</a>
     </p>
   </div>
-  <figure class="hero-shot">
+  <figure class="hero-shot" aria-label="Louder app screenshots">
     <div class="shots">
-      <img class="shot is-active" src="img/hero-drop.png" alt="Louder — drop a file to begin">
-      <img class="shot" src="img/hero-studio.png" alt="Louder Studio — adjust the processing chain">
-      <img class="shot" src="img/hero-compare.png" alt="Louder Compare — original vs. processed, side by side">
+      <img class="shot is-active" src="img/hero-drop.png" data-label="Drop" alt="Louder — drop a file to begin">
+      <img class="shot" src="img/hero-studio.png" data-label="Studio" alt="Louder Studio — adjust the processing chain">
+      <img class="shot" src="img/hero-compare.png" data-label="Compare" alt="Louder Compare — original vs. processed, side by side">
     </div>
-    <div class="thumbs" role="tablist" aria-label="App states"></div>
+    <div class="thumbs" role="tablist" aria-label="Choose a screenshot"></div>
   </figure>
 </header>
 
@@ -230,11 +230,14 @@ updateChainFades();
   if (!thumbsWrap || shots.length < 2) return;
   var current = 0, timer;
   var thumbs = shots.map(function (shot, i) {
+    var label = shot.dataset.label || ('State ' + (i + 1));
     var b = document.createElement('button');
     b.className = 'thumb' + (i === 0 ? ' is-active' : '');
     b.type = 'button';
     b.setAttribute('role', 'tab');
-    b.setAttribute('aria-label', shot.alt || 'State ' + (i + 1));
+    b.setAttribute('aria-label', 'Show ' + label + ' screenshot');
+    b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    b.setAttribute('title', label);
     var img = document.createElement('img');
     img.src = shot.currentSrc || shot.src;
     img.alt = '';
@@ -246,7 +249,10 @@ updateChainFades();
   function go(i) {
     current = i;
     shots.forEach(function (s, n) { s.classList.toggle('is-active', n === i); });
-    thumbs.forEach(function (t, n) { t.classList.toggle('is-active', n === i); });
+    thumbs.forEach(function (t, n) {
+      t.classList.toggle('is-active', n === i);
+      t.setAttribute('aria-selected', n === i ? 'true' : 'false');
+    });
   }
   function next() { go((current + 1) % shots.length); }
   function restart() { clearInterval(timer); timer = setInterval(next, 4500); }
