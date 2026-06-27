@@ -161,7 +161,7 @@ nav a.active { color: var(--theme-text); text-decoration: none; }
 .cta-primary { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .4rem; }
 .cta-note { color: var(--theme-overlay0); font-size: .8rem; }
 .action-link { white-space: nowrap; }
-.hero-shot { position: relative; width: 100%; margin: 0; }
+.hero-shot { position: relative; width: 92%; margin: 0; }
 .shots {
   position: relative;
   width: 100%;
