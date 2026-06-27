@@ -25,7 +25,13 @@
       <a class="action-link secondary" href="https://notes.plontsch.de/about/">Get in touch</a>
     </p>
   </div>
-  <figure class="hero-shot"><img src="img/hero.png" alt="Louder screenshot"></figure>
+  <figure class="hero-shot">
+    <div class="shots">
+      <img class="shot is-active" src="img/hero-idle.gif" alt="Louder idle state — drop a file here">
+      <img class="shot" src="img/hero.png" alt="Louder results — measured loudness, side by side">
+    </div>
+    <div class="dots" role="tablist" aria-label="App states"></div>
+  </figure>
 </header>
 
 <section id="features">
@@ -41,13 +47,6 @@
         <div>
           <h3>Just drop it</h3>
           <p>Drag any video onto the window or the Dock icon and Louder takes it from there — no import dialogs, no settings to wade through. Your file is replaced with the enhanced version in a single step.</p>
-        </div>
-      </li>
-      <li>
-        <span class="feature-ico"><svg class="sym" aria-hidden="true"><use href="#i-sliders-horizontal"/></svg></span>
-        <div>
-          <h3>Set a preset once</h3>
-          <p>Pick the preset that fits your voice and Louder remembers it. Every drop after that is a single gesture — nothing to reconfigure, nothing to second-guess.</p>
         </div>
       </li>
       <li>
@@ -206,8 +205,50 @@ document.querySelectorAll('.tab').forEach(function (tab) {
     document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('is-active'); });
     tab.classList.add('is-active');
     document.getElementById(tab.dataset.panel).classList.add('is-active');
+    updateChainFades();
   });
 });
+function updateChainFade(ch) {
+  var more = ch.scrollWidth - ch.clientWidth - ch.scrollLeft > 2;
+  ch.classList.toggle('can-scroll-right', more);
+}
+function updateChainFades() {
+  document.querySelectorAll('.chain').forEach(updateChainFade);
+}
+document.querySelectorAll('.chain').forEach(function (ch) {
+  ch.addEventListener('scroll', function () { updateChainFade(ch); });
+});
+window.addEventListener('resize', updateChainFades);
+updateChainFades();
+
+(function () {
+  var figure = document.querySelector('.hero-shot');
+  if (!figure) return;
+  var shots = [].slice.call(figure.querySelectorAll('.shot'));
+  var dotsWrap = figure.querySelector('.dots');
+  if (!dotsWrap || shots.length < 2) return;
+  var current = 0, timer;
+  var dots = shots.map(function (shot, i) {
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' is-active' : '');
+    d.type = 'button';
+    d.setAttribute('role', 'tab');
+    d.setAttribute('aria-label', 'State ' + (i + 1));
+    d.addEventListener('click', function () { go(i); restart(); });
+    dotsWrap.appendChild(d);
+    return d;
+  });
+  function go(i) {
+    current = i;
+    shots.forEach(function (s, n) { s.classList.toggle('is-active', n === i); });
+    dots.forEach(function (d, n) { d.classList.toggle('is-active', n === i); });
+  }
+  function next() { go((current + 1) % shots.length); }
+  function restart() { clearInterval(timer); timer = setInterval(next, 4500); }
+  figure.addEventListener('mouseenter', function () { clearInterval(timer); });
+  figure.addEventListener('mouseleave', restart);
+  restart();
+})();
 document.querySelectorAll('.preset').forEach(function (card) {
   var detail = card.querySelector('.step-detail');
   var def = detail.textContent;
