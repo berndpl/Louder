@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1 (Build 4) — 2026-06-27
+
+- Source: `2a22ec9b9438fd6c1288c81a5a11e30f04af107d`
+- Marketing decision: minor — first notarized release since Build 2; bundles the user-visible capabilities accumulated since then (Clean AI cleanup preset, 4K/1080p output-quality selection, multi-channel mono downmix) plus the new mode-aware Reset control, matching the 1.1 bump flagged in the Build 3 note.
+- Notarization: Accepted (`f6481dce-9571-4105-9fd0-a29ab8811f88`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.1-build-4-macos-arm64.zip`
+
+### Changes
+
+- Replaced the toolbar Undo button with a mode-aware Reset: in Compare it confirms deleting all generated files; in single-process it keeps the new louder file and asks whether to keep or delete the original, then returns to the initial drop screen.
+
 ## 1.0 (Build 3) — 2026-06-22
 
 - Source: `53ca6e4a01c3621b2978163f3ddec861267c1424`
