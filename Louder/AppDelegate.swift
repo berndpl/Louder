@@ -4,7 +4,7 @@ import UserNotifications
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSWindowDelegate {
-    private static let undoItemIdentifier = NSToolbarItem.Identifier("Louder.Undo")
+    private static let resetItemIdentifier = NSToolbarItem.Identifier("Louder.Reset")
 
     let queue = DropQueue()
     let comparisonPlayer = ComparisonPlayer()
@@ -110,7 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, Self.undoItemIdentifier]
+        [.flexibleSpace, Self.resetItemIdentifier]
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -123,17 +123,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         switch itemIdentifier {
-        case Self.undoItemIdentifier:
+        case Self.resetItemIdentifier:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-            item.label = "Undo"
-            item.paletteLabel = "Undo"
-            item.toolTip = "Undo the latest batch"
+            item.label = "Reset"
+            item.paletteLabel = "Reset"
+            item.toolTip = "Reset to the initial state"
             item.autovalidates = false
             let button = NSHostingView(rootView:
                 Button {
-                    self.undoLatestBatch()
+                    self.resetApp()
                 } label: {
-                    Image(systemName: "arrow.uturn.backward")
+                    Image(systemName: "arrow.counterclockwise")
                         .font(.system(size: 15, weight: .medium))
                         .frame(width: 18, height: 18)
                         .contentShape(Circle())
@@ -141,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.circle)
                 .controlSize(.regular)
-                .accessibilityLabel("Undo latest batch")
+                .accessibilityLabel("Reset to initial state")
             )
             button.translatesAutoresizingMaskIntoConstraints = false
             item.view = button
@@ -153,24 +153,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         }
     }
 
-    @objc private func undoLatestBatch() {
+    @objc private func resetApp() {
         comparisonPlayer.stop()
-        queue.undoLatestBatch()
+        guard queue.canReset else { return }
+
+        if queue.wasCompareBatch {
+            let count = queue.generatedFileCount
+            let alert = NSAlert()
+            alert.messageText = "Delete all generated files?"
+            alert.informativeText = count == 1
+                ? "This removes the 1 generated comparison file and returns to the start."
+                : "This removes all \(count) generated comparison files and returns to the start."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Delete")
+            alert.addButton(withTitle: "Cancel")
+            if alert.runModal() == .alertFirstButtonReturn {
+                queue.deleteGeneratedFiles()
+            }
+        } else {
+            let alert = NSAlert()
+            alert.messageText = "Keep the original file?"
+            alert.informativeText = "The new louder file will be kept. Choose whether to keep or delete the original."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Keep Original")
+            alert.addButton(withTitle: "Delete Original")
+            let response = alert.runModal()
+            // First button = Keep, second = Delete.
+            queue.reset(deleteOriginals: response == .alertSecondButtonReturn)
+        }
     }
 
     private func updateToolbar() {
         guard let toolbar else { return }
 
-        let undoIndex = toolbar.items.firstIndex(where: {
-            $0.itemIdentifier == Self.undoItemIdentifier
+        let resetIndex = toolbar.items.firstIndex(where: {
+            $0.itemIdentifier == Self.resetItemIdentifier
         })
-        if queue.canUndo, undoIndex == nil {
+        if queue.canReset, resetIndex == nil {
             toolbar.insertItem(
-                withItemIdentifier: Self.undoItemIdentifier,
+                withItemIdentifier: Self.resetItemIdentifier,
                 at: toolbar.items.count
             )
-        } else if !queue.canUndo, let undoIndex {
-            toolbar.removeItem(at: undoIndex)
+        } else if !queue.canReset, let resetIndex {
+            toolbar.removeItem(at: resetIndex)
         }
     }
 }
