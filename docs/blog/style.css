@@ -400,61 +400,65 @@ figure img {
 figcaption { margin-top: .5rem; color: var(--theme-overlay0); font-size: .9rem; text-align: center; }
 footer { padding: 2rem 0 1rem; color: var(--theme-overlay0); font-size: .9rem; text-align: left; }
 
-/* Thank-you colophon — quiet credits block above the footer */
+/* Thank-you colophon — compact, footer-sized credits above the footer */
 .colophon { border-bottom: 0; padding-top: 3rem; }
 .colophon > h2 {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  margin-bottom: .6rem;
+  gap: .45rem;
+  margin-bottom: .5rem;
   color: var(--theme-accent);
-  font-size: 1.35rem;
+  font-size: 1rem;
   font-weight: 700;
 }
-.colophon > h2 .sym { color: var(--theme-accent); width: 1.05em; height: 1.05em; }
+.colophon > h2 .sym { color: var(--theme-accent); width: 1em; height: 1em; }
+.thanks-intro {
+  margin: 0 0 1rem;
+  color: var(--theme-subtext0);
+  font-size: .9rem;
+  max-width: 46rem;
+}
+.thanks-intro .hint { color: var(--theme-overlay0); }
 .thanks {
   list-style: none;
-  margin: 1.6rem 0 0;
+  margin: 0;
   padding: 0;
   display: grid;
-  gap: 1.4rem;
+  gap: .15rem;
+  max-width: 46rem;
 }
-.thanks > li {
-  display: flex;
-  gap: .85rem;
-  align-items: flex-start;
+.thanks details {
+  border-top: 1px solid var(--theme-surface0);
+  padding: .5rem 0;
 }
-.thanks > li > .sym {
-  flex: 0 0 auto;
-  width: 1.2rem;
-  height: 1.2rem;
-  margin-top: .15rem;
-  color: var(--theme-overlay0);
-}
-.thanks h3 {
-  margin: 0 0 .2rem;
-  font-size: .98rem;
-  font-weight: 700;
+.thanks li:last-child details { border-bottom: 1px solid var(--theme-surface0); }
+.thanks summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: .9rem;
   color: var(--theme-text);
 }
-.thanks h3 a { color: var(--theme-link); }
-.thanks .lic {
-  margin-left: .5rem;
+.thanks summary::-webkit-details-marker { display: none; }
+.thanks summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1em;
+  margin-right: .35rem;
   color: var(--theme-overlay0);
-  font-size: .75rem;
+  font-weight: 700;
+}
+.thanks details[open] summary::before { content: "−"; }
+.thanks summary a { color: var(--theme-link); font-weight: 700; }
+.thanks .lic {
+  margin-left: .4rem;
+  color: var(--theme-overlay0);
+  font-size: .8rem;
   font-weight: 400;
 }
-.thanks p {
-  margin: 0;
+.thanks details p {
+  margin: .45rem 0 .15rem 1.35rem;
   color: var(--theme-subtext0);
-  font-size: .92rem;
-  max-width: 46rem;
-}
-.thanks-close {
-  margin: 1.8rem 0 0;
-  color: var(--theme-subtext0);
-  font-size: .92rem;
-  max-width: 46rem;
+  font-size: .85rem;
 }
 
 @media (max-width: 720px) {

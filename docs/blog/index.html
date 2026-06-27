@@ -222,59 +222,37 @@
 
 <section id="thanks" class="colophon">
   <h2><svg class="sym" aria-hidden="true"><use href="#i-heart"/></svg> Thank you</h2>
-  <p class="section-lead">This project builds on the amazing work of people who gave it away for free. Every render, every glyph, every icon on this page traces back to someone — often whole communities — who chose to share.</p>
+  <p class="thanks-intro">Louder builds on the work of these projects — and the people behind them. <span class="hint">Open one to read more.</span></p>
   <ul class="thanks">
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-audio-waveform"/></svg>
-      <div>
-        <h3><a href="https://ffmpeg.org">FFmpeg</a> <span class="lic">LGPL / GPL</span></h3>
-        <p>The engine behind every Louder render. Loudness normalisation (<code>loudnorm</code>), denoise (<code>afftdn</code>), compression, EQ and re-encoding all run through it — hundreds of volunteers, sustained for over two decades.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-volume-x"/></svg>
-      <div>
-        <h3><a href="https://github.com/Rikorose/DeepFilterNet">DeepFilterNet</a> <span class="lic">MIT / Apache-2.0</span></h3>
-        <p>The full-band 48&nbsp;kHz deep-learning denoiser that clears room noise without gutting the voice. Researched and shared by Hendrik Schröter and contributors — bundled and run entirely on-device.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-radio"/></svg>
-      <div>
-        <h3><a href="https://github.com/Xiaobin-Rong/gtcrn">GTCRN</a> <span class="lic">MIT License</span></h3>
-        <p>A tiny, efficient speech-enhancement model — Louder's lightweight on-device cleanup option. Weights and research generously shared by Xiaobin Rong and collaborators.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>
-      <div>
-        <h3><a href="https://tech.ebu.ch/publications/r128">EBU R128</a> <span class="lic">Open standard</span></h3>
-        <p>The loudness standard Louder targets, so a voice sits at a consistent, comfortable level. Defined and freely published by the European Broadcasting Union.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-type"/></svg>
-      <div>
-        <h3><a href="https://github.com/googlefonts/Inconsolata">Inconsolata</a> <span class="lic">SIL Open Font License</span></h3>
-        <p>The monospaced typeface you're reading. Drawn by Raph Levien as a humane face for code, and given to everyone.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>
-      <div>
-        <h3><a href="https://lucide.dev">Lucide</a> <span class="lic">ISC License</span></h3>
-        <p>The line icons throughout this page. A community-maintained fork of Feather by Cole Bemis, kept alive by dozens of contributors.</p>
-      </div>
-    </li>
-    <li>
-      <svg class="sym" aria-hidden="true"><use href="#i-code"/></svg>
-      <div>
-        <h3><a href="https://www.swift.org">Swift &amp; SwiftUI</a> <span class="lic">Apple · Swift is open source</span></h3>
-        <p>The language and framework Louder is built in, and the macOS platform it lives on — the work of Apple's engineers and the wider Swift community.</p>
-      </div>
-    </li>
+    <li><details>
+      <summary><a href="https://ffmpeg.org">FFmpeg</a> <span class="lic">LGPL / GPL</span></summary>
+      <p>Render engine — loudness (<code>loudnorm</code>), denoise (<code>afftdn</code>), compression, EQ, re-encode. Two decades of volunteer work.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://github.com/Rikorose/DeepFilterNet">DeepFilterNet</a> <span class="lic">MIT / Apache-2.0</span></summary>
+      <p>Full-band 48&nbsp;kHz deep-learning denoiser, run on-device. By Hendrik Schröter and contributors.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://github.com/Xiaobin-Rong/gtcrn">GTCRN</a> <span class="lic">MIT</span></summary>
+      <p>Lightweight on-device speech enhancement. By Xiaobin Rong and collaborators.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://tech.ebu.ch/publications/r128">EBU R128</a> <span class="lic">Open standard</span></summary>
+      <p>The loudness target Louder aims for. From the European Broadcasting Union.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://github.com/googlefonts/Inconsolata">Inconsolata</a> <span class="lic">SIL OFL</span></summary>
+      <p>The typeface on this page. By Raph Levien.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://lucide.dev">Lucide</a> <span class="lic">ISC</span></summary>
+      <p>The icons. A community fork of Feather, by Cole Bemis and contributors.</p>
+    </details></li>
+    <li><details>
+      <summary><a href="https://www.swift.org">Swift &amp; SwiftUI</a> <span class="lic">Apple · open source</span></summary>
+      <p>The language, framework, and macOS platform. Apple and the Swift community.</p>
+    </details></li>
   </ul>
-  <p class="thanks-close">And to everyone whose name isn't listed but whose work is quietly in here anyway — the toolmakers, the writers of the docs, the people who answered the question before I asked it: thank you.</p>
 </section>
 </main>
 
