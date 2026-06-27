@@ -27,10 +27,11 @@
   </div>
   <figure class="hero-shot">
     <div class="shots">
-      <img class="shot is-active" src="img/hero-idle.gif" alt="Louder idle state — drop a file here">
-      <img class="shot" src="img/hero.png" alt="Louder results — measured loudness, side by side">
+      <img class="shot is-active" src="img/hero-drop.png" alt="Louder — drop a file to begin">
+      <img class="shot" src="img/hero-studio.png" alt="Louder Studio — adjust the processing chain">
+      <img class="shot" src="img/hero-compare.png" alt="Louder Compare — original vs. processed, side by side">
     </div>
-    <div class="dots" role="tablist" aria-label="App states"></div>
+    <div class="thumbs" role="tablist" aria-label="App states"></div>
   </figure>
 </header>
 
@@ -225,23 +226,27 @@ updateChainFades();
   var figure = document.querySelector('.hero-shot');
   if (!figure) return;
   var shots = [].slice.call(figure.querySelectorAll('.shot'));
-  var dotsWrap = figure.querySelector('.dots');
-  if (!dotsWrap || shots.length < 2) return;
+  var thumbsWrap = figure.querySelector('.thumbs');
+  if (!thumbsWrap || shots.length < 2) return;
   var current = 0, timer;
-  var dots = shots.map(function (shot, i) {
-    var d = document.createElement('button');
-    d.className = 'dot' + (i === 0 ? ' is-active' : '');
-    d.type = 'button';
-    d.setAttribute('role', 'tab');
-    d.setAttribute('aria-label', 'State ' + (i + 1));
-    d.addEventListener('click', function () { go(i); restart(); });
-    dotsWrap.appendChild(d);
-    return d;
+  var thumbs = shots.map(function (shot, i) {
+    var b = document.createElement('button');
+    b.className = 'thumb' + (i === 0 ? ' is-active' : '');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', shot.alt || 'State ' + (i + 1));
+    var img = document.createElement('img');
+    img.src = shot.currentSrc || shot.src;
+    img.alt = '';
+    b.appendChild(img);
+    b.addEventListener('click', function () { go(i); restart(); });
+    thumbsWrap.appendChild(b);
+    return b;
   });
   function go(i) {
     current = i;
     shots.forEach(function (s, n) { s.classList.toggle('is-active', n === i); });
-    dots.forEach(function (d, n) { d.classList.toggle('is-active', n === i); });
+    thumbs.forEach(function (t, n) { t.classList.toggle('is-active', n === i); });
   }
   function next() { go((current + 1) % shots.length); }
   function restart() { clearInterval(timer); timer = setInterval(next, 4500); }
