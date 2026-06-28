@@ -104,6 +104,10 @@ struct ContentView: View {
     @State private var beaconTrigger = 0
     @State private var filenameHoveredSeriesID: UUID?
     @State private var selectedVersionID: UUID?
+    /// Snapshot of the external toolchain (ffmpeg/ffprobe/Homebrew). Re-checked
+    /// on launch and whenever the app returns to the foreground, so installing
+    /// the tools in Terminal dismisses the setup card without a relaunch.
+    @State private var toolchain: FFmpeg.ToolchainStatus = FFmpeg.status()
     @AppStorage(ProcessingPreset.preferenceKey)
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
     @AppStorage(OutputResolution.preferenceKey)
@@ -336,6 +340,9 @@ struct ContentView: View {
                     queue.cancelProcessing()
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                recheckToolchain()
+            }
     }
 
     private var dropZone: some View {
@@ -350,7 +357,13 @@ struct ContentView: View {
                 )
 
             Group {
-                if isInitialState {
+                if isInitialState && !toolchain.isReady {
+                    // Dependencies missing: replace the drop UI with a guided
+                    // setup card so the user fixes the toolchain before trying a
+                    // drop that would only fail.
+                    SetupCardView(status: toolchain, onRecheck: recheckToolchain)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if isInitialState {
                     // Idle: keep the picker + quality pair at the window's exact
                     // vertical center by giving the regions above (illustration)
                     // and below (drop hint) equal flexible height.
@@ -468,6 +481,13 @@ struct ContentView: View {
     /// outer radius, travel inward at a constant size, and fade out.
     private func playDropBeacon() {
         beaconTrigger += 1
+    }
+
+    /// Re-evaluates the external toolchain. Called from the setup card's
+    /// Re-check button and on foreground so installing the tools dismisses the
+    /// card automatically.
+    private func recheckToolchain() {
+        toolchain = FFmpeg.status()
     }
 
     @ViewBuilder
@@ -999,6 +1019,12 @@ struct ContentView: View {
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        // Block drops until the toolchain is ready; the setup card stays up and
+        // a re-check reflects anything just installed.
+        guard toolchain.isReady else {
+            recheckToolchain()
+            return false
+        }
         for provider in providers {
             _ = provider.loadObject(ofClass: URL.self) { url, _ in
                 guard let url else { return }

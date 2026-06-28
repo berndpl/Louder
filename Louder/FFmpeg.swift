@@ -29,6 +29,29 @@ enum LouderError: LocalizedError {
 enum FFmpeg {
     private static let searchDirectories = ["/opt/homebrew/bin", "/usr/local/bin"]
 
+    /// Snapshot of the external command-line tools Louder depends on. ffmpeg and
+    /// ffprobe are required; Homebrew is optional but, when present, lets us hand
+    /// the user a single `brew install` command instead of the longer bootstrap.
+    struct ToolchainStatus: Equatable, Sendable {
+        var ffmpeg: Bool
+        var ffprobe: Bool
+        var homebrew: Bool
+
+        /// True once both required tools are available and processing can run.
+        var isReady: Bool { ffmpeg && ffprobe }
+    }
+
+    /// Re-evaluates which dependencies are installed. Cheap (a few file-system
+    /// existence checks), so it is safe to call on launch and whenever the app
+    /// returns to the foreground after the user installs something.
+    static func status() -> ToolchainStatus {
+        ToolchainStatus(
+            ffmpeg: locate("ffmpeg") != nil,
+            ffprobe: locate("ffprobe") != nil,
+            homebrew: locate("brew") != nil
+        )
+    }
+
     struct ToolResult: Sendable {
         let exitCode: Int32
         let output: String

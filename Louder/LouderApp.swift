@@ -17,5 +17,12 @@ struct LouderApp: App {
         Settings {
             SettingsView()
         }
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Louder") {
+                    BuildInfo.showAboutPanel()
+                }
+            }
+        }
     }
 }
