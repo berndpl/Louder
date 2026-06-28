@@ -1,18 +1,20 @@
-<img src="AppIconRounded.png" width="128" alt="Louder app icon">
+<img src="docs/blog/img/icon.png" width="128" alt="Louder app icon">
 
 # Louder
 
-Drop a video on it. The voice gets loud and clear. That's it.
+From a janky screen recording to a perfectly shareable video asset in a single step.
 
-Follow the build along in the **[devlog](https://berndpl.github.io/Louder/blog/)**.
+Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and encode — all at once.
 
-<img src="ScreenshotIdle.gif" width="460" alt="Louder's idle window: a leaf icon with arrows briefly sweeping inward toward it, the preset menu set to Louder, a 4K/1080p toggle, and the hint 'Drop videos here or on the Dock icon'">
+See the **[project page](https://berndpl.github.io/Louder/blog/)** for the changelog and screenshots.
+
+<img src="docs/blog/img/hero-drop.png" width="460" alt="Louder — drop a file to begin: a leaf icon, the preset menu set to Louder, a 4K/1080p toggle, and the hint to drop videos here or on the Dock icon">
 
 Screencasts, demos, and meeting recordings almost always share one problem: the picture is fine, but the voice is quiet, thin, and buried under room noise.
 
-From a janky screen recording to a perfectly shareable video asset in a single step. Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and re-encode — all at once. Pick a preset once and it writes the result back in place. No timeline, no plugins, nothing to configure.
+Pick a preset once and it writes the result back in place. No timeline, no plugins, nothing to configure.
 
-<img src="Screenshot.png" width="460" alt="Louder showing loudness, isolation, and trim results after comparing presets on a clip">
+<img src="docs/blog/img/hero-compare.png" width="460" alt="Louder Compare — original vs. processed, side by side after running presets on a clip">
 
 ## Features
 
@@ -25,7 +27,7 @@ From a janky screen recording to a perfectly shareable video asset in a single s
 
 Get the latest build from the **[Releases page](https://github.com/berndpl/Louder/releases/latest)**, unzip, and drag **Louder.app** into Applications. Apple Silicon only; you still need ffmpeg (see [Requirements](#requirements)).
 
-The app is signed with a Developer ID but not yet notarized, so on first launch macOS warns that it can't verify the developer. Right-click the app → **Open** (once), or build it yourself from source below.
+The app is signed with a Developer ID and **notarized by Apple**, so it launches without Gatekeeper warnings. Prefer to build it yourself? See [Building](#building) below.
 
 ## What it does
 
