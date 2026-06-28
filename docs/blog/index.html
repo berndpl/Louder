@@ -157,6 +157,13 @@
   <h2>Changelog</h2>
 
   <article class="entry">
+    <div class="date">2026-06-28 · release</div>
+    <h3>The first real download, and an app that explains itself</h3>
+    <p>1.1 (Build 5) is the first <strong>published</strong> release — notarized, stapled, and attached to a GitHub release, not just a local install. Two things landed for it. When <code>ffmpeg</code>/<code>ffprobe</code> are missing, the drop zone is replaced by a guided setup card that hands you a ready <code>brew install</code> command, re-checks when you return to the app, and dismisses itself once the tools are there — no relaunch. And every build now stamps its own date: a <code>BuildDate</code> in the bundle and an About panel showing version · build · build date, so you always know exactly what you're running.</p>
+    <p>Commit <a href="https://github.com/berndpl/Louder/commit/2c916ff3d564c996d222623aae7a6ee247e9398d"><code>2c916ff</code></a>.</p>
+  </article>
+
+  <article class="entry">
     <div class="date">2026-06-27 · reset</div>
     <h3>Reset replaces Undo</h3>
     <p>The toolbar <code>Undo</code> button became a mode-aware <strong>Reset</strong>. In Compare it confirms deleting every generated variant; in single-process it keeps the new louder file and asks whether to keep or delete the original, then drops back to the initial drop screen. Shipped as 1.1 (Build 4) — the first notarized release since Build 2, bundling everything accumulated since: the Clean AI preset, 4K/1080p output quality, and multi-channel mono downmix.</p>

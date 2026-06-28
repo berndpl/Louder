@@ -3,6 +3,7 @@ xcuserdata/
 *.xcuserstate
 DerivedData/
 .build-local/
+.build-release/
 build/
 dist/
 .spike-clean/

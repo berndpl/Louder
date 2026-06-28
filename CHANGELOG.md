@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1 (Build 5) — 2026-06-28
+
+- Source: `2c916ff`
+- Marketing decision: unchanged — first published GitHub release of the 1.1 line; changes since Build 4 are onboarding polish (a guided dependency setup card) plus build provenance, refining the existing 1.1 product rather than a milestone.
+- Notarization: Accepted (`80bff621-5f67-4ca8-b007-260c77d70e5b`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.1-build-5-macos-arm64.zip`
+
+### Changes
+
+- Added a guided setup card that appears when ffmpeg/ffprobe are missing: it hands the user a ready `brew install` (or bootstrap) command, re-checks on foreground and before drops, and dismisses itself once the tools are installed — no relaunch needed.
+- Added build provenance: a stamped `BuildDate` in `Info.plist` and a custom About panel showing version · build · build date.
+
 ## 1.1 (Build 4) — 2026-06-27
 
 - Source: `2a22ec9b9438fd6c1288c81a5a11e30f04af107d`
