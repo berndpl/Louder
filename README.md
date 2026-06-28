@@ -38,7 +38,7 @@ Drag one or more video or audio files onto the Dock icon or the drop window. For
 
 Pick **Compare** (the last menu item) to leave the source alone and write one clearly named variant for every preset beside it, so you can A/B them. Each variant is saved as `<name> - <Preset>.<ext>` (e.g. `talk - Studio.mp4`).
 
-After processing, the window stays open with compact loudness curves, integrated LUFS, an estimated signal-to-noise ratio, and a native Undo. Click any curve to hear that version; switching keeps the current timestamp for instant A/B.
+After processing, the window stays open with compact loudness curves, integrated LUFS, an estimated signal-to-noise ratio, and a mode-aware **Reset**. Click any curve to hear that version; switching keeps the current timestamp for instant A/B. Reset returns you to the drop screen — in Compare it clears every generated variant; on a single file it keeps the louder result and asks whether to keep or delete the original.
 
 ## Presets
 
@@ -69,7 +69,7 @@ Mono and stereo audio pass through untouched; surround (more than two channels, 
 ## Requirements
 
 - macOS on **Apple Silicon** (the bundled DeepFilterNet denoiser is an `arm64` binary).
-- ffmpeg via Homebrew: `brew install ffmpeg`. Louder looks in `/opt/homebrew/bin` and `/usr/local/bin`, and fails gracefully with this hint if it's missing.
+- ffmpeg via Homebrew: `brew install ffmpeg`. Louder looks in `/opt/homebrew/bin` and `/usr/local/bin`. If ffmpeg (or Homebrew) is missing, the app shows a guided setup card on launch with copy-ready install commands, an Open Terminal button, and Re-check — no need to drop a file first.
 
 DeepFilterNet 0.5.6 and the DeepFilterNet3 model are bundled. All cleanup runs locally; recordings are never uploaded.
 
