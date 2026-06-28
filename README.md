@@ -10,11 +10,16 @@ Follow the build along in the **[devlog](https://berndpl.github.io/Louder/blog/)
 
 Screencasts, demos, and meeting recordings almost always share one problem: the picture is fine, but the voice is quiet, thin, and buried under room noise.
 
-Ever recorded a screencast on your EarPods and found the voice just isn't loud enough? You crank it up in post — and now it's loud *and* noisy, every crackle and breath boosted right along with it. This one's for you.
-
 From a janky screen recording to a perfectly shareable video asset in a single step. Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and re-encode — all at once. Pick a preset once and it writes the result back in place. No timeline, no plugins, nothing to configure.
 
 <img src="Screenshot.png" width="460" alt="Louder showing loudness, isolation, and trim results after comparing presets on a clip">
+
+## Features
+
+- **Just drop it** — Drag any video onto the window or the Dock icon and Louder takes it from there — no import dialogs, no settings to wade through. Your file is replaced with the enhanced version in a single step.
+- **Built for EarPods** — Screencasts recorded on EarPods or a laptop mic come out thin, quiet, and easy to miss. Louder is tuned for exactly that voice — turning a janky take into something you'd actually share.
+- **Compare before you commit** — Not sure which preset to trust? Compare mode renders them side by side so you can hear the difference for yourself before you pick the keeper.
+- **See what changed** — A clear visual readout — loudness curves, integrated LUFS, and estimated SNR — shows exactly how much quieter the noise got and how much louder the voice came through.
 
 ## Download
 
@@ -37,14 +42,14 @@ After processing, the window stays open with compact loudness curves, integrated
 
 ## Presets
 
-All presets target **−16 LUFS** and differ only in how they clean the voice before the boost. The **ⓘ** button beside the menu opens a schematic signal chain showing the exact models and parameters behind the selected preset.
+Pick one once. Each cleans the voice a little differently, then brings it to a consistent **−16 LUFS** (EBU R128), encoded as 48 kHz AAC-LC. The **ⓘ** button beside the menu opens a schematic signal chain showing the exact models and parameters behind the selected preset.
 
-| Preset | Signal path | Effect |
+| Preset | Signal chain | What it's for |
 | --- | --- | --- |
-| **Louder** | DeepFilterNet3 denoise → loudness boost | The safe default. Gentle stationary-noise cleanup, then brings the voice to a consistent level. |
-| **Studio** | DeepFilterNet3 → studio EQ + compression → boost | A warm broadcast tone: rumble cut, low-end and presence shaping, gentle compression. |
-| **Focus** | Event-gate (Apple SoundAnalysis) → DeepFilterNet3 → boost | Ducks intermittent events (a door, a dog, keyboard clatter) before denoising. Best for occasionally noisy rooms. |
-| **Clean** | AI speech enhancement (neural model) → boost | Rebuilds the voice with an on-device neural model for the strongest cleanup. Band-limited, so clearer but slightly duller — try it when the others leave too much noise. |
+| **Louder** | Denoise → Loudness | The safe default — gentle cleanup, then a consistent level. DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact. |
+| **Studio** | Denoise → EQ → Compress → Loudness | A warm broadcast tone — rumble cut, presence shaping, gentle compression. |
+| **Focus** | Gate → Denoise → Loudness | Best for occasionally noisy rooms — a door, a dog, keyboard clatter. Ducks intermittent events between words (Apple SoundAnalysis) before denoising. |
+| **Clean** | Enhance → Loudness | The strongest cleanup — try it when the others leave too much noise. Rebuilds the voice with an on-device neural model (GTCRN); band-limited, so clearer but slightly duller. |
 
 ## Output quality
 
@@ -80,7 +85,7 @@ No editing, format conversion, folder watching, arbitrary audio parameters, or A
 
 ## Thanks
 
-Louder builds on the work of these projects — and the people behind them: [FFmpeg](https://ffmpeg.org), [DeepFilterNet](https://github.com/Rikorose/DeepFilterNet), [GTCRN](https://github.com/Xiaobin-Rong/gtcrn), [EBU R128](https://tech.ebu.ch/publications/r128), [Inconsolata](https://github.com/googlefonts/Inconsolata), [Lucide](https://lucide.dev), and [Swift &amp; SwiftUI](https://www.swift.org).
+Louder builds on the work of these projects — and the people behind them: [FFmpeg](https://ffmpeg.org), [DeepFilterNet](https://github.com/Rikorose/DeepFilterNet), [GTCRN](https://github.com/Xiaobin-Rong/gtcrn), [EBU R128](https://tech.ebu.ch/publications/r128), [Inconsolata](https://github.com/googlefonts/Inconsolata), [Lucide](https://lucide.dev), and [Swift & SwiftUI](https://www.swift.org).
 
 ## License
 
