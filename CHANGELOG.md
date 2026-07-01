@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2 (Build 6) — 2026-07-01
+
+- Source: `5ea33bfa4d1e09855f340e0df7b534c9fecef855`
+- Marketing decision: minor — adds a substantial new user-facing file-handling workflow (move/copy a dropped recording into a target folder and rename it to a `body + recording-date` convention before processing), expanding the product beyond in-place enhancement.
+- Notarization: Accepted (`be085707-a90b-4ad7-9d93-a4ab0f840347`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.2-build-6-macos-arm64.zip`
+
+### Changes
+
+- Added a **Files** settings tab with a "Move to target folder" workflow: before processing, relocate the dropped file (Move or Copy) into a folder you choose, and optionally rename it to a filename convention — a body you specify plus an appended recording-date suffix (`yyMMdd`).
+- Reorganized Settings into **Files** and **Processing** tabs.
+- Made relocation a session-level undo operation kept separate from per-run processing, so switching presets and using Compare no longer break when file renaming is enabled.
+- Added data-safety unit tests (`LouderTests`) verifying Copy never touches the source, Move/undo round-trips cleanly, "Rename original" backups restore correctly, and undo refuses to run when a required file is missing.
+
 ## 1.1 (Build 5) — 2026-06-28
 
 - Source: `2c916ff`

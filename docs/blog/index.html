@@ -156,6 +156,14 @@
   <h2>Changelog</h2>
 
   <article class="entry">
+    <div class="date">2026-07-01 · release</div>
+    <h3>From a recording in one folder to a shareable file in another</h3>
+    <p>1.2 (Build 6) adds a file-handling workflow that runs <em>before</em> enhancement. A new <strong>Files</strong> settings tab lets you point Louder at a target folder: on drop it moves (or copies) the recording there, then renames it to your convention — a body you choose plus an appended recording date (<code>yyMMdd</code>) — and only then processes it. Settings now split into <strong>Files</strong> and <strong>Processing</strong> tabs to hold it all.</p>
+    <p>Relocation became its own session-level step, kept separate from per-run processing, so switching presets and using Compare no longer break when renaming is on. Because these are irreplaceable recordings, the safety rules are now covered by unit tests: Copy never touches the source, Move and undo round-trip cleanly, "Rename original" backups always restore, and undo refuses to run if a required file is missing.</p>
+    <p>Commit <a href="https://github.com/berndpl/Louder/commit/5ea33bfa4d1e09855f340e0df7b534c9fecef855"><code>5ea33bf</code></a>.</p>
+  </article>
+
+  <article class="entry">
     <div class="date">2026-06-28 · release</div>
     <h3>The first real download, and an app that explains itself</h3>
     <p>1.1 (Build 5) is the first <strong>published</strong> release — notarized, stapled, and attached to a GitHub release, not just a local install. Two things landed for it. When <code>ffmpeg</code>/<code>ffprobe</code> are missing, the drop zone is replaced by a guided setup card that hands you a ready <code>brew install</code> command, re-checks when you return to the app, and dismisses itself once the tools are there — no relaunch. And every build now stamps its own date: a <code>BuildDate</code> in the bundle and an About panel showing version · build · build date, so you always know exactly what you're running.</p>
