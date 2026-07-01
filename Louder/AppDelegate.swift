@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
             addFades: AudioFades.persisted,
             trimSilence: TrimSilence.persisted,
             renameOriginal: RenameOriginal.persisted,
+            fileHandling: FileHandling.persisted,
             resolution: OutputResolution.persisted,
             stages: StudioBoothStages.all
         )

@@ -15,7 +15,13 @@ struct LouderApp: App {
         // The drop window is managed by AppDelegate so Dock drops and reopen
         // behave correctly; no SwiftUI window scene is needed.
         Settings {
-            SettingsView()
+            TabView {
+                FilesSettingsView()
+                    .tabItem { Label("Files", systemImage: "folder") }
+                ProcessingSettingsView()
+                    .tabItem { Label("Processing", systemImage: "waveform") }
+            }
+            .frame(width: 460)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

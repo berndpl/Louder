@@ -241,8 +241,10 @@ struct ContentView: View {
                             addFades: AudioFades.persisted,
                             trimSilence: TrimSilence.persisted,
                             renameOriginal: RenameOriginal.persisted,
+                            fileHandling: .disabled,
                             resolution: outputResolution,
-                            stages: StudioBoothStages.all
+                            stages: StudioBoothStages.all,
+                            isReprocessing: true
                         )
                     }
                 } else if queue.compareMode {
@@ -256,10 +258,12 @@ struct ContentView: View {
                     reprocess(source, with: selection)
                 } else if selection != selectedPresetRawValue {
                     // Switching between presets: rerun generation with the new preset
-                    // and clean up the previously generated output.
+                    // and clean up the previously generated output. Only the audio
+                    // artifacts are reversed — any relocation stays in place so the
+                    // already-moved/renamed file is reprocessed where it now lives.
                     let source = pristineSourceURL
                     comparisonPlayer.stop()
-                    queue.undoLatestBatch()
+                    queue.undoOutputForReprocess()
                     selectedPresetRawValue = selection
                     reprocess(source, with: selection)
                 }
@@ -289,8 +293,10 @@ struct ContentView: View {
             addFades: AudioFades.persisted,
             trimSilence: TrimSilence.persisted,
             renameOriginal: RenameOriginal.persisted,
+            fileHandling: .disabled,
             resolution: outputResolution,
-            stages: StudioBoothStages.all
+            stages: StudioBoothStages.all,
+            isReprocessing: true
         )
     }
 
@@ -382,6 +388,7 @@ struct ContentView: View {
                         .padding(.bottom, 16)
 
                         VStack(spacing: 0) {
+                            Spacer(minLength: 0)
                             statusDescription
                             Spacer(minLength: 0)
                         }
@@ -1036,6 +1043,7 @@ struct ContentView: View {
                         addFades: AudioFades.persisted,
                         trimSilence: TrimSilence.persisted,
                         renameOriginal: RenameOriginal.persisted,
+                        fileHandling: FileHandling.persisted,
                         resolution: outputResolution,
                         stages: StudioBoothStages.all
                     )

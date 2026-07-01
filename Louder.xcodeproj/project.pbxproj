@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		89B580962FDBF4C600A0AA5A /* Louder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Louder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA1100000000000000000001 /* LouderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LouderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -18,10 +19,24 @@
 			path = Louder;
 			sourceTree = "<group>";
 		};
+		AA1100000000000000000002 /* LouderTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			path = LouderTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		89B580932FDBF4C600A0AA5A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA1100000000000000000005 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -35,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				89B580982FDBF4C600A0AA5A /* Louder */,
+				AA1100000000000000000002 /* LouderTests */,
 				89B580972FDBF4C600A0AA5A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				89B580962FDBF4C600A0AA5A /* Louder.app */,
+				AA1100000000000000000001 /* LouderTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,7 +88,45 @@
 			productReference = 89B580962FDBF4C600A0AA5A /* Louder.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA1100000000000000000003 /* LouderTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA1100000000000000000008 /* Build configuration list for PBXNativeTarget "LouderTests" */;
+			buildPhases = (
+				AA1100000000000000000004 /* Sources */,
+				AA1100000000000000000005 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA1100000000000000000006 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA1100000000000000000002 /* LouderTests */,
+			);
+			name = LouderTests;
+			productName = LouderTests;
+			productReference = AA1100000000000000000001 /* LouderTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXTargetDependency section */
+		AA1100000000000000000006 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 89B580952FDBF4C600A0AA5A /* Louder */;
+			targetProxy = AA1100000000000000000007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		AA1100000000000000000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 89B5808E2FDBF4C600A0AA5A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 89B580952FDBF4C600A0AA5A;
+			remoteInfo = Louder;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXProject section */
 		89B5808E2FDBF4C600A0AA5A /* Project object */ = {
@@ -83,6 +138,10 @@
 				TargetAttributes = {
 					89B580952FDBF4C600A0AA5A = {
 						CreatedOnToolsVersion = 26.5;
+					};
+					AA1100000000000000000003 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 89B580952FDBF4C600A0AA5A;
 					};
 				};
 			};
@@ -101,6 +160,7 @@
 			projectRoot = "";
 			targets = (
 				89B580952FDBF4C600A0AA5A /* Louder */,
+				AA1100000000000000000003 /* LouderTests */,
 			);
 		};
 /* End PBXProject section */
@@ -139,6 +199,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		89B580922FDBF4C600A0AA5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA1100000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -336,6 +403,36 @@
 			};
 			name = Release;
 		};
+		AA1100000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DNKZNVGEK5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				PRODUCT_BUNDLE_IDENTIFIER = de.plontsch.LouderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Louder.app/Contents/MacOS/Louder";
+			};
+			name = Debug;
+		};
+		AA110000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DNKZNVGEK5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				PRODUCT_BUNDLE_IDENTIFIER = de.plontsch.LouderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Louder.app/Contents/MacOS/Louder";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -353,6 +450,15 @@
 			buildConfigurations = (
 				89B580A22FDBF4C700A0AA5A /* Debug */,
 				89B580A32FDBF4C700A0AA5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA1100000000000000000008 /* Build configuration list for PBXNativeTarget "LouderTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA1100000000000000000009 /* Debug */,
+				AA110000000000000000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

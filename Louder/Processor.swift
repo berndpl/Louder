@@ -333,6 +333,124 @@ enum RenameOriginal {
     }
 }
 
+/// Whether the source file is relocated into a target folder before any
+/// processing runs. Defaults to `false`, preserving in-place processing.
+enum MoveToFolder {
+    static let preferenceKey = "moveToFolder"
+
+    static var persisted: Bool {
+        UserDefaults.standard.object(forKey: preferenceKey) as? Bool ?? false
+    }
+}
+
+/// User-chosen destination folder for relocated files, stored as a plain path
+/// (the app runs unsandboxed, so no security-scoped bookmark is required).
+enum TargetFolder {
+    static let preferenceKey = "targetFolderPath"
+
+    static var persisted: String {
+        UserDefaults.standard.string(forKey: preferenceKey) ?? ""
+    }
+}
+
+/// Whether the source is moved (removed from its origin) or copied into the
+/// target folder. Defaults to `.move`.
+enum RelocationMode: String, Sendable, CaseIterable, Identifiable {
+    case move
+    case copy
+
+    var id: String { rawValue }
+    var label: String { self == .move ? "Move" : "Copy" }
+
+    static let preferenceKey = "relocationMode"
+
+    static var persisted: RelocationMode {
+        guard let raw = UserDefaults.standard.string(forKey: preferenceKey),
+              let value = RelocationMode(rawValue: raw) else {
+            return .move
+        }
+        return value
+    }
+}
+
+/// Whether the relocated file is renamed to the user's convention before
+/// processing. Defaults to `false`.
+enum RenameFile {
+    static let preferenceKey = "renameFile"
+
+    static var persisted: Bool {
+        UserDefaults.standard.object(forKey: preferenceKey) as? Bool ?? false
+    }
+}
+
+/// The base ("body") of the renamed filename. Blank falls back to the source
+/// filename so batches stay unique.
+enum RenameBody {
+    static let preferenceKey = "renameFileBody"
+
+    static var persisted: String {
+        UserDefaults.standard.string(forKey: preferenceKey) ?? ""
+    }
+}
+
+/// Whether a `yyMMdd` date derived from the file's recording date is appended
+/// to the renamed filename. Defaults to `false`.
+enum AppendDate {
+    static let preferenceKey = "appendDate"
+
+    static var persisted: Bool {
+        UserDefaults.standard.object(forKey: preferenceKey) as? Bool ?? false
+    }
+
+    /// Compact `yyMMdd` formatter (e.g. `260701`).
+    static let formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyMMdd"
+        return formatter
+    }()
+}
+
+/// Bundle of file-handling / pre-processing preferences threaded through the
+/// queue and processor so the source is relocated + renamed before any audio
+/// work begins.
+struct FileHandling: Sendable {
+    var moveToFolder: Bool
+    var targetFolderPath: String
+    var relocationMode: RelocationMode
+    var renameFile: Bool
+    var renameBody: String
+    var appendDate: Bool
+
+    /// Whether any relocation should occur (a destination folder is required).
+    var relocates: Bool { moveToFolder && !targetFolderPath.isEmpty }
+
+    static var persisted: FileHandling {
+        FileHandling(
+            moveToFolder: MoveToFolder.persisted,
+            targetFolderPath: TargetFolder.persisted,
+            relocationMode: RelocationMode.persisted,
+            renameFile: RenameFile.persisted,
+            renameBody: RenameBody.persisted,
+            appendDate: AppendDate.persisted
+        )
+    }
+
+    /// A no-op configuration used when re-processing a file that has already
+    /// been relocated once (preset switches, Compare toggles), so it isn't moved
+    /// or renamed a second time.
+    static var disabled: FileHandling {
+        FileHandling(
+            moveToFolder: false,
+            targetFolderPath: "",
+            relocationMode: .move,
+            renameFile: false,
+            renameBody: "",
+            appendDate: false
+        )
+    }
+}
+
 enum TrimSilence {
     static let preferenceKey = "trimSilence"
 
@@ -436,6 +554,23 @@ struct LoudnessSeries: Identifiable, Sendable {
 enum UndoOperation: Sendable {
     case restore(originalURL: URL, backupURL: URL)
     case delete(url: URL)
+    /// Reverses a Move relocation: moves the file currently at `movedTo` back to
+    /// `originalURL` (its pre-relocation path).
+    case relocate(movedTo: URL, originalURL: URL)
+    /// Reverses a Copy relocation: deletes the copy left in the target folder.
+    /// The source is never touched by a Copy, so nothing is restored.
+    case deleteRelocatedCopy(url: URL)
+
+    /// Whether this operation reverses the file's relocation (as opposed to the
+    /// audio-processing artifacts). Relocation is a session-level step that
+    /// survives internal preset/Compare reprocessing and is only reversed by a
+    /// full user Undo.
+    var isRelocation: Bool {
+        switch self {
+        case .relocate, .deleteRelocatedCopy: return true
+        case .restore, .delete: return false
+        }
+    }
 }
 
 struct BatchTransaction: Sendable {
@@ -446,7 +581,7 @@ struct BatchTransaction: Sendable {
 
 struct ProcessingResult: Sendable {
     let series: [LoudnessSeries]
-    let undoOperations: [UndoOperation]
+    var undoOperations: [UndoOperation]
     var warnings: [String]
     let outputURLs: [URL]
     /// Seconds of leading/trailing silence removed, when trimming was applied.
@@ -476,12 +611,46 @@ enum Processor {
         addFades: Bool,
         trimSilence: Bool,
         renameOriginal: Bool,
+        fileHandling: FileHandling,
         resolution: OutputResolution,
         stages: StudioBoothStages,
         onProgress: @Sendable @escaping (String) -> Void
     ) async throws -> ProcessingResult {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw LouderError.processingFailed("File not found: \(url.path)")
+        }
+
+        // File handling / pre-processing: relocate + rename the source into the
+        // target folder before any audio work runs, so the rest of the pipeline
+        // operates on the share-ready file in its final location.
+        var url = url
+        let originalSourceURL = url
+        var didRelocate = false
+        if fileHandling.relocates {
+            onProgress(fileHandling.relocationMode == .move
+                ? "Moving to target folder…"
+                : "Copying to target folder…")
+            url = try relocate(url, using: fileHandling)
+            didRelocate = true
+        }
+
+        // Folds the relocation into a result's undo operations as a distinct,
+        // session-level operation so that internal preset/Compare reprocessing
+        // can reverse only the audio artifacts and leave the relocated file in
+        // place, while a full user Undo reverses everything. Move is reversed by
+        // moving the file back to its origin; Copy leaves the source untouched,
+        // so its undo simply deletes the copy left in the target folder.
+        func withRelocationUndo(_ result: ProcessingResult) -> ProcessingResult {
+            guard didRelocate else { return result }
+            var result = result
+            switch fileHandling.relocationMode {
+            case .move:
+                result.undoOperations.append(
+                    .relocate(movedTo: url, originalURL: originalSourceURL))
+            case .copy:
+                result.undoOperations.append(.deleteRelocatedCopy(url: url))
+            }
+            return result
         }
 
         let trackCount = try await FFmpeg.audioTrackCount(of: url)
@@ -566,7 +735,7 @@ enum Processor {
             )
             result.trimmedSeconds = trimmedSeconds
             if let mergeNote { result.warnings.insert(mergeNote, at: 0) }
-            return result
+            return withRelocationUndo(result)
         }
 
         let audioURL = try await AudioPipeline.run(
@@ -597,7 +766,7 @@ enum Processor {
         )
         result.trimmedSeconds = trimmedSeconds
         if let mergeNote { result.warnings.insert(mergeNote, at: 0) }
-        return result
+        return withRelocationUndo(result)
     }
 
     private static func prepareAudio(
@@ -1048,5 +1217,78 @@ enum Processor {
             counter += 1
         }
         return candidate
+    }
+
+    /// Moves or copies `source` into the user's target folder, applying the
+    /// rename convention (body + optional `yyMMdd` recording date) and resolving
+    /// name collisions. Returns the file's new URL.
+    ///
+    /// Internal (not private) so the naming + data-safety rules can be unit
+    /// tested directly against a temporary directory.
+    static func relocate(_ source: URL, using handling: FileHandling) throws -> URL {
+        let folder = URL(fileURLWithPath: (handling.targetFolderPath as NSString).expandingTildeInPath,
+                         isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        } catch {
+            throw LouderError.processingFailed(
+                "Couldn't use target folder \(folder.path): \(error.localizedDescription)")
+        }
+
+        let ext = source.pathExtension
+        let sourceBase = source.deletingPathExtension().lastPathComponent
+
+        // Resolve the base name (body + date), keeping collisions unique.
+        let body: String
+        if handling.renameFile {
+            let trimmed = handling.renameBody.trimmingCharacters(in: .whitespacesAndNewlines)
+            body = trimmed.isEmpty ? sourceBase : trimmed
+        } else {
+            body = sourceBase
+        }
+        let dateSuffix = handling.appendDate ? " \(recordingDateString(for: source))" : ""
+
+        func destination(_ name: String) -> URL {
+            ext.isEmpty
+                ? folder.appendingPathComponent(name)
+                : folder.appendingPathComponent("\(name).\(ext)")
+        }
+
+        var name = "\(body)\(dateSuffix)"
+        var candidate = destination(name)
+        // First collision fallback: disambiguate with the source filename (only
+        // when it isn't already the body). Then fall back to a numeric counter.
+        if FileManager.default.fileExists(atPath: candidate.path), body != sourceBase {
+            name = "\(body) \(sourceBase)\(dateSuffix)"
+            candidate = destination(name)
+        }
+        var counter = 2
+        let uniqueBase = name
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = destination("\(uniqueBase) \(counter)")
+            counter += 1
+        }
+
+        switch handling.relocationMode {
+        case .move:
+            do {
+                try FileManager.default.moveItem(at: source, to: candidate)
+            } catch {
+                // Cross-volume moves throw; fall back to copy + remove.
+                try FileManager.default.copyItem(at: source, to: candidate)
+                try? FileManager.default.removeItem(at: source)
+            }
+        case .copy:
+            try FileManager.default.copyItem(at: source, to: candidate)
+        }
+        return candidate
+    }
+
+    /// `yyMMdd` string from the file's creation date (falling back to its
+    /// modification date, then now).
+    private static func recordingDateString(for url: URL) -> String {
+        let values = try? url.resourceValues(forKeys: [.creationDateKey, .contentModificationDateKey])
+        let date = values?.creationDate ?? values?.contentModificationDate ?? Date()
+        return AppendDate.formatter.string(from: date)
     }
 }
