@@ -7,3 +7,9 @@ DerivedData/
 build/
 dist/
 .spike-clean/
+
+# Private data / local work artifacts — never commit
+.codex-work/
+.codex-rakuten-transactions.json
+.codex-rakuten-message-ids.json
+outputs/
