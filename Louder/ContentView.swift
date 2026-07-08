@@ -112,6 +112,10 @@ struct ContentView: View {
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
     @AppStorage(OutputResolution.preferenceKey)
     private var outputResolutionRawValue = OutputResolution.persisted.rawValue
+    // Re-render the assessment cards when the indicator palette is switched or
+    // cycled, so .positive / .caution / .critical pick up the new colors.
+    @AppStorage(IndicatorPalette.storageKey)
+    private var indicatorPaletteID = IndicatorPalette.defaultID
 
     private var selectedPreset: ProcessingPreset {
         let stored = ProcessingPreset(rawValue: selectedPresetRawValue) ?? .gentleBoostDenoise
@@ -926,7 +930,11 @@ struct ContentView: View {
     }
 
     private func metrics(for series: LoudnessSeries) -> some View {
-        HStack(spacing: 8) {
+        // Reading the palette id here registers a SwiftUI dependency, and the
+        // .id() below forces the cards to rebuild with the new .positive /
+        // .caution / .critical colors whenever the palette is switched or cycled.
+        let paletteID = indicatorPaletteID
+        return HStack(spacing: 8) {
             metricCard(
                 title: "Loud",
                 value: loudnessSummary(for: series),
@@ -947,6 +955,7 @@ struct ContentView: View {
             sizeCard(for: series)
         }
         .fixedSize(horizontal: false, vertical: true)
+        .id(paletteID)
     }
 
     /// Shown only when the video stream was actually re-encoded (downscale to the
@@ -965,7 +974,7 @@ struct ContentView: View {
                 title: "Size",
                 value: "\(before) → \(after)",
                 detail: sizeDetail(for: series, delta: delta, shrank: shrank),
-                tint: shrank ? .green : .secondary,
+                tint: shrank ? .positive : .secondary,
                 isBest: series.id == bestSizeSeriesID,
                 help: "How the output file size compares to the original. Shown only when the video was re-encoded — downscaled to the chosen output quality or re-encoded for a silence trim. Files at or below the quality cap are copied untouched and have no size change."
             )
@@ -1092,7 +1101,11 @@ struct ContentView: View {
     private func loudnessTint(for series: LoudnessSeries) -> Color {
         guard let preset = series.preset else { return .secondary }
         let distance = abs(series.metrics.integratedLUFS - Double(preset.targetLUFS))
-        return distance <= 1 ? .positive : .caution
+        // On target is a positive result; a little off is a caution; badly off
+        // target (loudnorm couldn't reach it) is a genuine negative outcome.
+        if distance <= 1 { return .positive }
+        if distance <= 3 { return .caution }
+        return .critical
     }
 
     private func isolationTitle(for series: LoudnessSeries) -> String {
@@ -1145,6 +1158,7 @@ struct ContentView: View {
            let originalSNR = matchingOriginal?.metrics.estimatedSNR {
             let change = snr - originalSNR
             if change > 0.5 { return .positive }
+            if change < -2 { return .critical }
             if change < -0.5 { return .caution }
         }
         return .secondary
@@ -1172,13 +1186,5 @@ extension ProcessingPreset {
     var tint: Color { .generated }
 }
 
-extension Color {
-    /// Prominent brand tint reused for every generated version.
-    static let generated = Color.accentColor
-    /// Positive assessment — on target / low noise.
-    static let positive = Color.green
-    /// Caution assessment — slightly off / some noise.
-    static let caution = Color.orange
-    /// Negative assessment — problematic / distracting.
-    static let critical = Color.red
-}
+// Semantic indicator colors (.positive / .caution / .critical) live in
+// IndicatorPalette.swift, where they resolve from the selected OKLCH palette.

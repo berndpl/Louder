@@ -20,6 +20,8 @@ struct LouderApp: App {
                     .tabItem { Label("Files", systemImage: "folder") }
                 ProcessingSettingsView()
                     .tabItem { Label("Processing", systemImage: "waveform") }
+                AppearanceSettingsView()
+                    .tabItem { Label("Appearance", systemImage: "paintpalette") }
             }
             .frame(width: 460)
         }

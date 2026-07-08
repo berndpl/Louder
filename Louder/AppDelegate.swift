@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
     let comparisonPlayer = ComparisonPlayer()
     private var window: NSWindow?
     private weak var toolbar: NSToolbar?
+    private var keyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
@@ -21,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         queue.onWillBeginBatch = { [weak self] in self?.comparisonPlayer.stop() }
         queue.onWillUndo = { [weak self] in self?.comparisonPlayer.stop() }
         showWindow()
+        installPaletteShortcut()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -52,6 +54,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
 
     func applicationWillTerminate(_ notification: Notification) {
         comparisonPlayer.stop()
+    }
+
+    // MARK: - Palette shortcuts
+
+    /// Keyboard shortcuts for the OKLCH indicator palette used by the assessment
+    /// cards: "P" cycles forward, and the ↑/↓ arrows step to the previous/next
+    /// palette. Handled with a local event monitor so they work in the main
+    /// window and the Settings picker alike, but never while typing in a field.
+    private func installPaletteShortcut() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.handlePaletteKey(event) else { return event }
+            return nil
+        }
+    }
+
+    private func handlePaletteKey(_ event: NSEvent) -> Bool {
+        // Act in any Louder window (main window or Settings), but stay out of
+        // the way whenever the user is typing in a text field.
+        guard let keyWindow = NSApp.keyWindow else { return false }
+        if keyWindow.firstResponder is NSText { return false }
+        let modifiers: NSEvent.ModifierFlags = [.command, .option, .control, .shift]
+        guard event.modifierFlags.intersection(modifiers).isEmpty else { return false }
+
+        switch event.keyCode {
+        case 126: // up arrow → previous palette
+            IndicatorPalette.step(-1)
+            return true
+        case 125: // down arrow → next palette
+            IndicatorPalette.step(1)
+            return true
+        default:
+            break
+        }
+
+        guard event.charactersIgnoringModifiers?.lowercased() == "p" else { return false }
+        IndicatorPalette.cycle()
+        return true
     }
 
     func windowWillClose(_ notification: Notification) {

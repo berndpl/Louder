@@ -80,14 +80,35 @@ h1, h2, h3, h4 {
 }
 
 /* Topbar: brand mark + title, optional nav, primary action button — emphasized header band */
+/* Topbar: hidden by default; slides down into view only once the hero (masthead) has
+   scrolled off. Fixed / out of flow, so the hero sits flush at the top with no header gap.
+   The tail script toggles .is-scrolled once you scroll past the hero. */
 .topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--theme-base) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .3s ease, border-color .25s ease;
+}
+.topbar.is-scrolled {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  border-bottom-color: var(--theme-surface0);
+}
+.topbar-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: .7rem 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: .6rem 0 1.4rem;
-  margin-bottom: 2.5rem;
-  border-bottom: 1px solid var(--theme-surface0);
 }
 .nav-left, .nav-right, nav {
   display: flex;
@@ -463,7 +484,7 @@ footer { padding: .75rem 0 1rem; color: var(--theme-overlay0); font-size: .9rem;
 
 @media (max-width: 720px) {
   body { padding: 16px; }
-  .topbar { align-items: flex-start; }
+  .topbar-inner { align-items: flex-start; padding: .7rem 16px; }
   .hero { padding: 2.5rem 0 1.5rem; }
   .hero-with-shot { grid-template-columns: 1fr; gap: 1.25rem; }
   .decisions, .grid2 { grid-template-columns: 1fr; }
