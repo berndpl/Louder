@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.3 (Build 7) — 2026-07-08
+
+- Source: `4c48212f1bf18ec1a921abcde26b073b7d70bdbc`
+- Marketing decision: `minor` — adds a whole new Appearance settings tab with a 16-palette OKLCH indicator theming system, a live assessment-card preview, and keyboard navigation, a substantial user-visible capability beyond in-place polish.
+- Notarization: Accepted (`93c9c6e9-ca4e-4af5-9d6d-9e7040585934`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.3-build-7-macos-arm64.zip`
+
+### Changes
+
+- Added an **Appearance** settings tab with a configurable indicator palette for the assessment cards (positive · caution · critical), built from 16 OKLCH palettes derived from the Style Explorer palette definitions, with full light and dark mode support.
+- Added a live **preview** of the assessment cards next to the palette picker, plus an OKLCH color-options reference grouped by role.
+- Added keyboard navigation: press **↑ / ↓** to step through palettes (or **P** to cycle), updating the indicator colors instantly.
+- Set **Ocean** as the default palette.
+
 ## 1.2 (Build 6) — 2026-07-01
 
 - Source: `5ea33bfa4d1e09855f340e0df7b534c9fecef855`
