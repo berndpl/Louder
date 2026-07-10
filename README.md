@@ -34,8 +34,8 @@ The app is signed with a Developer ID and **notarized by Apple**, so it launches
 Drag one or more video or audio files onto the Dock icon or the drop window. For each file, Louder:
 
 1. Backs up the original to `<name> - original.<ext>` beside it.
-2. Applies one remembered preset — **Louder**, **Studio**, **Focus**, or **Clean** (see [Presets](#presets)) — targeting a consistent **−16 LUFS**.
-3. Adds natural 0.25-second fades at the start and end (toggle in Settings), then re-encodes audio as broadly-compatible **48 kHz AAC-LC** with `+faststart`.
+2. Applies one remembered preset — **Untouched**, **Louder**, **Studio**, **Focus**, or **Clean** (see [Presets](#presets)).
+3. Enhancement presets target a consistent **−16 LUFS**, add optional natural 0.25-second fades, and encode audio as broadly-compatible **48 kHz AAC-LC**. **Untouched** copies every audio stream without changing or re-encoding it.
 4. Replaces the original in place. If a file fails, the original is left untouched.
 
 Pick **Compare** (the last menu item) to leave the source alone and write one clearly named variant for every preset beside it, so you can A/B them. Each variant is saved as `<name> - <Preset>.<ext>` (e.g. `talk - Studio.mp4`).
@@ -44,10 +44,11 @@ After processing, the window stays open with compact loudness curves, integrated
 
 ## Presets
 
-Pick one once. Each cleans the voice a little differently, then brings it to a consistent **−16 LUFS** (EBU R128), encoded as 48 kHz AAC-LC. The **ⓘ** button beside the menu opens a schematic signal chain showing the exact models and parameters behind the selected preset.
+Pick one once. Enhancement presets clean the voice differently, then bring it to a consistent **−16 LUFS** (EBU R128), encoded as 48 kHz AAC-LC. **Untouched** skips audio processing entirely. The **ⓘ** button beside the menu opens a schematic signal chain showing the exact models and parameters behind the selected preset.
 
 | Preset | Signal chain | What it's for |
 | --- | --- | --- |
+| **Untouched** | Audio stream copy | Process, trim, resize, relocate, or rename the video while preserving every audio stream exactly as encoded in the source. |
 | **Louder** | Denoise → Loudness | The safe default — gentle cleanup, then a consistent level. DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact. |
 | **Studio** | Denoise → EQ → Compress → Loudness | A warm broadcast tone — rumble cut, presence shaping, gentle compression. |
 | **Focus** | Gate → Denoise → Loudness | Best for occasionally noisy rooms — a door, a dog, keyboard clatter. Ducks intermittent events between words (Apple SoundAnalysis) before denoising. |
@@ -64,9 +65,9 @@ Whenever the video is actually re-encoded — by a downscale or a silence trim �
 
 ## Playback compatibility
 
-Output audio is always 48 kHz AAC-LC and every file is written `+faststart` for instant playback on the web and devices. The video stream is copied untouched to preserve quality and speed, so its compatibility matches your source — Louder inspects the result and warns about limitations like **H.265 (HEVC)**, high-bit-depth/4:2:2 pixel formats, or an audio/video length mismatch. For the broadest reach, record in **H.264**.
+Enhanced output audio is 48 kHz AAC-LC; **Untouched** retains the source audio codec and streams. Every supported container is written with `+faststart` for instant playback on the web and devices. The video stream is copied when no trim or downscale requires re-encoding, so its compatibility otherwise matches your source — Louder inspects the result and warns about limitations like **H.265 (HEVC)**, high-bit-depth/4:2:2 pixel formats, or an audio/video length mismatch. For the broadest reach, record in **H.264**.
 
-Mono and stereo audio pass through untouched; surround (more than two channels, e.g. 5.1) is merged down to mono so it can't play back silent or broken on devices that can't decode the layout.
+Enhancement presets keep mono and stereo layouts; surround (more than two channels, e.g. 5.1) is merged down to mono so it can't play back silent or broken on devices that can't decode the layout. **Untouched** preserves the original channel layout.
 
 ## Requirements
 

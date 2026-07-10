@@ -25,6 +25,7 @@ struct SignalStep: Identifiable, Sendable {
 }
 
 enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
+    case untouched
     case boost
     case boostDenoise
     case gentleBoostDenoise
@@ -35,18 +36,22 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     static let preferenceKey = "processingPreset"
 
     /// Presets offered in the menu picker.
-    static var pickerCases: [ProcessingPreset] { [.gentleBoostDenoise, .studioBooth, .focus, .clean] }
+    static var pickerCases: [ProcessingPreset] {
+        [.untouched, .gentleBoostDenoise, .studioBooth, .focus, .clean]
+    }
 
-    /// Presets generated when Compare fans out, in display order. Mirrors the
-    /// picker so every available preset produces a variant to compare.
+    /// Audio-enhancement presets generated when Compare fans out, in display
+    /// order. Untouched is excluded because the original lane already provides
+    /// the unprocessed audio reference.
     static var comparePresets: [ProcessingPreset] {
-        pickerCases
+        [.gentleBoostDenoise, .studioBooth, .focus, .clean]
     }
 
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .untouched: "Untouched"
         case .boost: "Boost"
         case .boostDenoise: "Boost + Denoise"
         case .gentleBoostDenoise: "Louder"
@@ -63,6 +68,7 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     /// shown as a subtitle under the dropdown.
     var pathDescription: String {
         switch self {
+        case .untouched: "Process video while copying audio unchanged"
         case .studioBooth: "Denoise + studio EQ + compression"
         case .focus: "Mute background noise + denoise + boost"
         case .clean: "AI speech cleanup + loudness boost"
@@ -79,6 +85,15 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     var signalChain: [SignalStep] {
         var steps: [SignalStep] = []
         switch self {
+        case .untouched:
+            steps.append(SignalStep(
+                name: "Audio Copy",
+                systemImage: "waveform",
+                detail: "Copies every source audio stream without filters, fades, resampling, "
+                    + "channel changes, loudness normalization, or re-encoding.",
+                docs: [DocLink("ffmpeg stream copy", "https://ffmpeg.org/ffmpeg.html#Stream-copy")]
+            ))
+            return steps
         case .boost:
             break
         case .boostDenoise, .gentleBoostDenoise:
@@ -131,6 +146,7 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
             ))
         }
 
+        guard let targetLUFS else { return steps }
         let tp = truePeak == truePeak.rounded() ? "−\(Int(-truePeak))" : "−1.5"
         var loudnessDetail = "ffmpeg loudnorm (two-pass EBU R128) → \(targetLUFS) LUFS integrated, "
             + "true-peak \(tp) dBTP, loudness range 11 LU. Encoded as 48 kHz AAC-LC."
@@ -174,6 +190,7 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
 
     var iconName: String {
         switch self {
+        case .untouched: "waveform"
         case .boost: "bolt.fill"
         case .boostDenoise: "wand.and.sparkles"
         case .gentleBoostDenoise: "leaf.fill"
@@ -183,22 +200,23 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    var targetLUFS: Int {
+    var targetLUFS: Int? {
         switch self {
+        case .untouched: nil
         case .boost, .boostDenoise: -14
         case .gentleBoostDenoise, .studioBooth, .focus, .clean: -16
         }
     }
 
     var usesDenoising: Bool {
-        self != .boost
+        self != .boost && self != .untouched
     }
 
     /// Human label for the isolation model a preset runs, shown in the
     /// "Isolation" assessment box. `nil` for presets that don't isolate.
     var isolationLabel: String? {
         switch self {
-        case .boost: nil
+        case .untouched, .boost: nil
         case .clean: "AI enhance"
         case .focus: "Gate + DeepFilterNet"
         case .boostDenoise, .gentleBoostDenoise, .studioBooth: "DeepFilterNet"
@@ -211,7 +229,7 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     /// this list, with no effect on the others.
     var audioStages: [AudioStage] {
         switch self {
-        case .boost:
+        case .untouched, .boost:
             []
         case .focus:
             [EventGateStage(), DenoiseDFNStage()]
@@ -238,9 +256,20 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
     }
 
     var loudnormFilter: String {
+        let target: Int
+        switch self {
+        case .untouched:
+            preconditionFailure("Untouched audio bypasses loudness normalization")
+        case .boost, .boostDenoise:
+            target = -14
+        case .gentleBoostDenoise, .studioBooth, .focus, .clean:
+            target = -16
+        }
         let tp = String(format: "%g", truePeak)
-        return "loudnorm=I=\(targetLUFS):TP=\(tp):LRA=11"
+        return "loudnorm=I=\(target):TP=\(tp):LRA=11"
     }
+
+    var preservesOriginalAudio: Bool { self == .untouched }
 
     static var persisted: Self {
         if let rawValue = UserDefaults.standard.string(forKey: preferenceKey) {
@@ -676,17 +705,21 @@ enum Processor {
         try FileManager.default.createDirectory(at: workDirectory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: workDirectory) }
 
-        onProgress(trackCount > 1
-            ? "Preparing and merging \(trackCount) audio tracks…"
-            : "Preparing audio…")
-        let sourceChannels = await FFmpeg.maxAudioChannels(of: url)
-        let mergedFromChannels = sourceChannels > 2 ? sourceChannels : nil
-        try await prepareAudio(
-            url,
-            at: preparedURL,
-            trackCount: trackCount,
-            downmixToMono: mergedFromChannels != nil
-        )
+        let needsPreparedAudio = compare || !preset.preservesOriginalAudio || trimSilence
+        let preparesEnhancedOutput = compare || !preset.preservesOriginalAudio
+        let sourceChannels = needsPreparedAudio ? await FFmpeg.maxAudioChannels(of: url) : 0
+        let mergedFromChannels = preparesEnhancedOutput && sourceChannels > 2 ? sourceChannels : nil
+        if needsPreparedAudio {
+            onProgress(trackCount > 1
+                ? "Preparing and merging \(trackCount) audio tracks…"
+                : "Preparing audio…")
+            try await prepareAudio(
+                url,
+                at: preparedURL,
+                trackCount: trackCount,
+                downmixToMono: mergedFromChannels != nil
+            )
+        }
         let mergeNote = mergedFromChannels.map {
             "Merged \($0)-channel audio to mono to avoid playback issues on some devices."
         }
@@ -738,16 +771,23 @@ enum Processor {
             return withRelocationUndo(result)
         }
 
-        let audioURL = try await AudioPipeline.run(
-            preset.audioStages,
-            input: preparedURL,
-            workDir: workDirectory,
-            onProgress: onProgress
-        )
-        let isolationRemoval = await FFmpeg.isolationRemoval(
-            input: preparedURL,
-            output: audioURL
-        )
+        let audioURL: URL
+        let isolationRemoval: Double?
+        if preset.preservesOriginalAudio {
+            audioURL = url
+            isolationRemoval = nil
+        } else {
+            audioURL = try await AudioPipeline.run(
+                preset.audioStages,
+                input: preparedURL,
+                workDir: workDirectory,
+                onProgress: onProgress
+            )
+            isolationRemoval = await FFmpeg.isolationRemoval(
+                input: preparedURL,
+                output: audioURL
+            )
+        }
 
         var result = try await processReplacement(
             sourceURL: url,
@@ -1073,12 +1113,6 @@ enum Processor {
         // bounded to the trimmed window length and the audio fades land on the
         // trimmed edges.
         let effectiveDuration = trimPlan.map { $0.windowLength } ?? duration
-        let audioFilter = filter(
-            for: preset,
-            addFades: addFades,
-            duration: effectiveDuration,
-            stages: stages
-        )
 
         // Downscale only when the source video exceeds the chosen height cap;
         // anything at or below the cap is copied untouched.
@@ -1092,15 +1126,33 @@ enum Processor {
         if let trimPlan {
             let start = posix(trimPlan.videoStart)
             arguments += ["-ss", start, "-i", sourceURL.path]
-            arguments += ["-ss", start, "-i", audioURL.path]
+            if !preset.preservesOriginalAudio {
+                arguments += ["-ss", start, "-i", audioURL.path]
+            }
         } else {
-            arguments += ["-i", sourceURL.path, "-i", audioURL.path]
+            arguments += ["-i", sourceURL.path]
+            if !preset.preservesOriginalAudio {
+                arguments += ["-i", audioURL.path]
+            }
         }
-        arguments += [
-            "-map", "0:v:0?",
-            "-map", "1:a:0",
-            "-af", audioFilter
-        ]
+        if preset.preservesOriginalAudio {
+            arguments += [
+                "-map", "0:v:0?",
+                "-map", "0:a?"
+            ]
+        } else {
+            let audioFilter = filter(
+                for: preset,
+                addFades: addFades,
+                duration: effectiveDuration,
+                stages: stages
+            )
+            arguments += [
+                "-map", "0:v:0?",
+                "-map", "1:a:0",
+                "-af", audioFilter
+            ]
+        }
         if reencodeVideo {
             // -2 keeps the width auto-computed to an even number, preserving
             // aspect ratio. H.264 8-bit 4:2:0 for the broadest playback support.
@@ -1114,9 +1166,14 @@ enum Processor {
         if let trimPlan {
             arguments += ["-t", posix(trimPlan.windowLength)]
         }
-        // Encode broadly-compatible 48 kHz AAC-LC. loudnorm otherwise resamples
-        // to 96 kHz, which several hardware decoders refuse to play; pin 48 kHz.
-        arguments += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+        if preset.preservesOriginalAudio {
+            arguments += ["-c:a", "copy"]
+        } else {
+            // Encode broadly-compatible 48 kHz AAC-LC. loudnorm otherwise
+            // resamples to 96 kHz, which several hardware decoders refuse to
+            // play; pin 48 kHz.
+            arguments += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+        }
         // Move the moov atom to the front so the file starts playing immediately
         // everywhere (progressive download, web players, embedded viewers).
         if ["mp4", "m4v", "mov", "m4a"].contains(outputURL.pathExtension.lowercased()) {
@@ -1161,6 +1218,7 @@ enum Processor {
     /// presence/air lift, compression and saturation on top of the denoised
     /// signal before the final loudness target.
     private static func processingChain(for preset: ProcessingPreset, stages: StudioBoothStages) -> [String] {
+        precondition(!preset.preservesOriginalAudio, "Untouched audio bypasses the filter chain")
         guard let booth = preset.studioBooth else {
             return [preset.loudnormFilter]
         }

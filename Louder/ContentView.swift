@@ -208,8 +208,8 @@ struct ContentView: View {
     }
 
     private func loudnessDistance(for series: LoudnessSeries) -> Double {
-        let target = Double(series.preset?.targetLUFS ?? -16)
-        return abs(series.metrics.integratedLUFS - target)
+        guard let target = series.preset?.targetLUFS else { return .infinity }
+        return abs(series.metrics.integratedLUFS - Double(target))
     }
 
     /// Among the current batch's re-encoded outputs, the smallest file. `nil`
@@ -1091,7 +1091,8 @@ struct ContentView: View {
             return series.displayName
         }
         guard let preset = series.preset else { return "Original recording" }
-        let distance = series.metrics.integratedLUFS - Double(preset.targetLUFS)
+        guard let target = preset.targetLUFS else { return "Kept as recorded" }
+        let distance = series.metrics.integratedLUFS - Double(target)
         if abs(distance) <= 1 {
             return "On target"
         }
@@ -1099,8 +1100,8 @@ struct ContentView: View {
     }
 
     private func loudnessTint(for series: LoudnessSeries) -> Color {
-        guard let preset = series.preset else { return .secondary }
-        let distance = abs(series.metrics.integratedLUFS - Double(preset.targetLUFS))
+        guard let target = series.preset?.targetLUFS else { return .secondary }
+        let distance = abs(series.metrics.integratedLUFS - Double(target))
         // On target is a positive result; a little off is a caution; badly off
         // target (loudnorm couldn't reach it) is a genuine negative outcome.
         if distance <= 1 { return .positive }

@@ -203,6 +203,14 @@ final class FileHandlingSafetyTests: XCTestCase {
         XCTAssertFalse(UndoOperation.restore(originalURL: source, backupURL: source).isRelocation)
     }
 
+    func testUntouchedPresetCopiesAudioAndStaysOutOfCompare() {
+        XCTAssertTrue(ProcessingPreset.pickerCases.contains(.untouched))
+        XCTAssertFalse(ProcessingPreset.comparePresets.contains(.untouched))
+        XCTAssertTrue(ProcessingPreset.untouched.preservesOriginalAudio)
+        XCTAssertNil(ProcessingPreset.untouched.targetLUFS)
+        XCTAssertTrue(ProcessingPreset.untouched.audioStages.isEmpty)
+    }
+
     // MARK: - Utilities
 
     private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {
