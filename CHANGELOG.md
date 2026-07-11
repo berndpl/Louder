@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4 (Build 8) — 2026-07-10
+
+- Source: `4573a219e5075bd2c571829fcc1345e8b11f19e9`
+- Marketing decision: `minor` — adds the new Untouched processing workflow, allowing video operations while preserving every source audio stream without filters or re-encoding, a substantial user-visible capability beyond the existing enhancement presets.
+- Notarization: Accepted (`51e59523-da56-47b1-973b-a93c0147eade`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.4-build-8-macos-arm64.zip`
+
+### Changes
+
+- Added the **Untouched** preset for trimming, resizing, relocating, or renaming video while stream-copying the original audio unchanged.
+- Kept Untouched out of Compare because the original lane already provides the unprocessed audio reference.
+- Updated the Project page presentation, screenshots, favicon assets, and design documentation.
+
 ## 1.3 (Build 7) — 2026-07-08
 
 - Source: `4c48212f1bf18ec1a921abcde26b073b7d70bdbc`
