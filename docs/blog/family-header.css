@@ -1,0 +1,132 @@
+/*
+  Canonical shared header CSS.
+  The host owns palette values and appearance selection. Define these tokens for every supported
+  dark, light, or OS-selected mode: --theme-base, --theme-surface0, --theme-text,
+  --theme-body-rgb, --theme-link, --theme-hover, and --theme-accent. Also define the fixed family
+  family metric tokens when present. Fallbacks below are the contract defaults.
+*/
+body {
+  padding-top: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: .7rem;
+  left: .7rem;
+  z-index: 100;
+  padding: .5rem .75rem;
+  color: var(--theme-base);
+  background: var(--theme-accent);
+  border-radius: 7px;
+  font-weight: 700;
+  transform: translateY(-180%);
+}
+.skip-link:focus { transform: none; }
+
+.topbar {
+  position: static;
+  top: auto;
+  z-index: auto;
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+  border-bottom: 0;
+  background: var(--theme-base);
+  font-family: var(--family-font, "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--family-body-font-size, 1rem);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.topbar-inner {
+  max-width: var(--family-content-width, 800px);
+  margin: 0 auto;
+  padding: var(--family-header-padding-y, .7rem) var(--family-layout-inset, 20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--family-header-gap, 1rem);
+}
+.nav-left {
+  width: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+.nav-right {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--family-header-gap, 1rem);
+  align-items: center;
+}
+.site-nav { flex: 0 0 auto; }
+.project-nav {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .4rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+.project-nav::-webkit-scrollbar { display: none; }
+.project-link {
+  width: var(--family-project-link-size, 2rem);
+  height: var(--family-project-link-size, 2rem);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--family-project-link-radius, 8px);
+  text-decoration: none;
+  transition: box-shadow .15s ease;
+}
+.project-link:hover {
+  text-decoration: none;
+}
+.project-link[aria-current="page"] {
+  box-shadow: inset 0 0 0 1px var(--theme-accent);
+}
+.project-mark {
+  width: var(--family-project-icon-size, 1.4rem);
+  height: var(--family-project-icon-size, 1.4rem);
+  display: block;
+  object-fit: contain;
+}
+.site-nav a {
+  color: rgba(var(--theme-body-rgb), .6);
+  font-size: var(--family-nav-font-size, 1rem);
+  font-weight: 400;
+  line-height: var(--family-nav-line-height, 1);
+  text-decoration: none;
+}
+.site-nav a:hover {
+  color: var(--theme-hover);
+  text-decoration: underline;
+}
+.site-nav a[aria-current="page"] {
+  color: var(--theme-text);
+  text-decoration: none;
+}
+.topbar a:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .topbar-inner {
+    padding: var(--family-header-padding-y, .7rem)
+      var(--family-layout-inset-compact, 16px);
+  }
+  .site-nav { gap: .75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-link { transition: none; }
+}

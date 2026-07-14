@@ -14,19 +14,25 @@ Do not replace the icon with a generic audio symbol. Do not fake a glass treatme
 
 ## Accent, palette, and type
 
-The current page identity is a calm, notebook-like light theme with local Inconsolata fonts. The primary accent is `#1f3df2`, recorded in CSS as Catppuccin Latte blue, used for headings, links, selected tabs, and primary actions.
+The Website uses the family light/dark palettes with local Inconsolata fonts. Louder's light accent
+pair is `#1f3df2` / `#5b6dff`; its dark pair is `#89b4fa` / `#b4befe`. The blue accent is used for
+links, primary actions, interactive emphasis, and the current-Website outline.
 
-Preserve the blue accent unless the app identity changes. Louder's UI screenshots can use their own product colors; the Website shell should stay quiet around them.
+Preserve the blue accent pairs unless the app identity changes. Louder's UI screenshots can use
+their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-09`.
+Family contract version applied: `2026-07-14.18`.
 
 Local family decisions:
 
 - Keep the Website self-contained: local CSS, local fonts, local icons, and local screenshots.
 - Keep external links only for GitHub releases, commit references, credits, license, and contact links.
 - Keep `#posts` on the home page as the changelog migration key.
+- Follow the operating-system appearance until a family theme choice is supplied by URL or storage.
+- Keep the temporary footer accent picker page-local; it must not rewrite Louder's recorded accent pairs.
+- Deliberately omit the family primary feature grid; Bernd chose Presets as Louder's only product module.
 
 ## Hero story and media rationale
 
@@ -42,9 +48,9 @@ Do not refresh product screenshots from this family-apply flow; `project-site-up
 
 ## Section hierarchy
 
-- Hero: product promise, icon, CTAs, and screenshot carousel.
-- Features / Presets tabs: explain the workflow and the local processing presets without adding another long section.
-- Changelog: newest-first project history retained inline under `#posts`.
+- Hero: product promise, icon, one Download action, and the three-state screenshot carousel.
+- Presets: the interactive local-processing module is the sole product section after the hero.
+- Recent changes: three compact home-page links under `#posts`, with complete prose on `changelog.html`.
 - Thank you: compact credits for the local audio, font, icon, and Swift ecosystem.
 
 ## Screenshot inventory and capture notes
@@ -70,3 +76,44 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
 - Adapted the hero from a single active screenshot carousel to a Steps-style interactive screenshot stack: all three Louder screenshots stay visible, and tap, keyboard, or autoplay rotates which one leads.
 - Kept the stack wrappers transparent and used alpha-aware image shadows so Louder's transparent screenshots do not sit inside visible rectangular cards.
 - Kept stack screenshots fully opaque during movement and apply the new stacking order before moving positions to avoid a visible end-of-motion jump.
+
+2026-07-13:
+
+- Preserved the Louder icon, blue palette, local Inconsolata type, hero story, real screenshots, Features / Presets module, changelog, and thank-you section.
+- Added the shared skip link and removed the hidden topbar from keyboard and assistive-technology navigation until it appears.
+- Removed shared CSS rounding from the real app icon so its own transparent-corner treatment remains intact.
+- Added an accessible name to the intentionally headingless Features / Presets section.
+- Updated tabs for roving focus and Arrow, Home, and End key operation.
+- Paused the screenshot stack while hovered or focused and disabled autoplay for reduced-motion preferences.
+- Made preset processing-step details available through focus as well as hover and click.
+
+2026-07-14:
+
+- Applied family contract `2026-07-14.18` and curated Project Website roster version `2026-07-14`.
+- Replaced the reveal-on-scroll project header with the canonical non-sticky Notes / About header and
+  Louder / Steps icon strip on every Website page.
+- Vendored the canonical family theme, typography, header, footer, action styles, behavior, fonts,
+  and both curated project icons under `docs/blog/`.
+- Added Louder's coordinated light and dark blue accent pairs without changing the project identity.
+- Preserved the real Louder icon, hero copy, three screenshots, screenshot-stack geometry and
+  interaction, all four feature descriptions, preset content, credits, and complete changelog prose.
+- Initially migrated the four primary capabilities into the family feature grid, then removed the
+  grid at Bernd's explicit request so Presets remains the only product section after the hero.
+- Removed the generic Get in touch actions because About is owned by the global header; kept Download
+  for Mac as Louder's single hero product action.
+- Moved the complete changelog to `changelog.html`, kept the three newest date-and-title links under
+  home-page `#posts`, and labeled the final link `View Changelog`.
+- Added the canonical footer theme switch and page-local accent picker without changing Louder's
+  default accent pair.
+- Preserved the existing focus, keyboard, pause-on-focus, reduced-motion, and preset-detail
+  accessibility behavior while removing the obsolete reveal-on-scroll header script.
+- Kept all three previous hero screenshots visible and expanded cycling to one transparent,
+  keyboard-accessible control covering the full hero media area.
+- Simplified the hero carousel to manual cycling only. Every screenshot now shares one centered
+  anchor and transform origin, and movement uses a single transform transition with no autoplay.
+- Contained the hero stack's paint overflow and removed inline z-index writes so cycling cannot
+  expand or relayout the page scroll area.
+- Moved compact changelog titles onto the family paragraph ramp (`1rem / 500 / 1.4`) instead of
+  inheriting the larger default `main` size.
+- Kept Presets visually headingless, moved its label into the lead sentence, and removed the
+  interaction-instruction sentence.

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog — Louder for macOS</title>
+<meta name="description" content="The complete Louder for macOS project changelog.">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://berndpl.github.io/Louder/blog/changelog.html">
+<link rel="icon" href="img/favicon.ico" sizes="any">
+<link rel="icon" href="img/favicon-16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="img/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="img/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
+<link rel="icon" href="img/icon.png" type="image/png" sizes="256x256">
+<script src="family-theme.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="project-theme.css">
+<link rel="stylesheet" href="family-theme.css">
+<link rel="stylesheet" href="family-typography.css">
+<link rel="stylesheet" href="family-header.css">
+<link rel="stylesheet" href="family-footer.css">
+<link rel="stylesheet" href="family-actions.css">
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="nav-left">
+      <nav class="site-nav" aria-label="Bernd Plontsch">
+        <a class="nav-link notes-link" href="https://notes.plontsch.de/">Notes</a>
+        <a class="nav-link about-link" href="https://notes.plontsch.de/about/">About</a>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <nav class="project-nav" aria-label="Project Websites">
+        <a class="project-link" href="https://berndpl.github.io/Louder/blog/" aria-label="Louder" title="Louder" aria-current="page"><img class="project-mark" src="img/projects/louder.png" alt="" width="256" height="256"></a>
+        <a class="project-link" href="https://berndpl.github.io/Steps/blog/" aria-label="Steps" title="Steps"><img class="project-mark" src="img/projects/steps.png" alt="" width="256" height="256"></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main id="top" class="changelog-page" tabindex="-1">
+  <nav class="page-nav" aria-label="Louder pages">
+    <a href="./">Overview</a>
+    <a href="changelog.html" aria-current="page">Changelog</a>
+  </nav>
+
+  <header>
+    <h1>Changelog</h1>
+    <p>The complete Louder project history, newest first.</p>
+  </header>
+
+  <section class="changelog-entries" aria-label="Complete changelog">
+    <article id="appearance-colors" class="entry">
+      <div class="date">2026-07-08 · release</div>
+      <h2>Pick the colors that tell you how it sounds</h2>
+      <p>1.3 (Build 7) adds an <strong>Appearance</strong> settings tab that recolors the assessment cards. The positive · caution · critical indicators now draw from a palette you choose — 16 palettes derived from the OKLCH palette definitions in the Style Explorer, each a single-hue triad tuned for both light and dark mode. <strong>Ocean</strong> is the new default.</p>
+      <p>The picker sits next to a live <strong>preview</strong> of the three cards, so you see the colors on real indicators before committing, plus an OKLCH color-options reference grouped by role. Press <kbd>↑</kbd> / <kbd>↓</kbd> to step through palettes (or <kbd>P</kbd> to cycle) and the indicators recolor instantly.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/4c48212f1bf18ec1a921abcde26b073b7d70bdbc"><code>4c48212</code></a>.</p>
+    </article>
+
+    <article id="file-workflow" class="entry">
+      <div class="date">2026-07-01 · release</div>
+      <h2>From a recording in one folder to a shareable file in another</h2>
+      <p>1.2 (Build 6) adds a file-handling workflow that runs <em>before</em> enhancement. A new <strong>Files</strong> settings tab lets you point Louder at a target folder: on drop it moves (or copies) the recording there, then renames it to your convention — a body you choose plus an appended recording date (<code>yyMMdd</code>) — and only then processes it. Settings now split into <strong>Files</strong> and <strong>Processing</strong> tabs to hold it all.</p>
+      <p>Relocation became its own session-level step, kept separate from per-run processing, so switching presets and using Compare no longer break when renaming is on. Because these are irreplaceable recordings, the safety rules are now covered by unit tests: Copy never touches the source, Move and undo round-trip cleanly, "Rename original" backups always restore, and undo refuses to run if a required file is missing.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/5ea33bfa4d1e09855f340e0df7b534c9fecef855"><code>5ea33bf</code></a>.</p>
+    </article>
+
+    <article id="first-download" class="entry">
+      <div class="date">2026-06-28 · release</div>
+      <h2>The first real download, and an app that explains itself</h2>
+      <p>1.1 (Build 5) is the first <strong>published</strong> release — notarized, stapled, and attached to a GitHub release, not just a local install. Two things landed for it. When <code>ffmpeg</code>/<code>ffprobe</code> are missing, the drop zone is replaced by a guided setup card that hands you a ready <code>brew install</code> command, re-checks when you return to the app, and dismisses itself once the tools are there — no relaunch. And every build now stamps its own date: a <code>BuildDate</code> in the bundle and an About panel showing version · build · build date, so you always know exactly what you're running.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/2c916ff3d564c996d222623aae7a6ee247e9398d"><code>2c916ff</code></a>.</p>
+    </article>
+
+    <article id="reset-replaces-undo" class="entry">
+      <div class="date">2026-06-27 · reset</div>
+      <h2>Reset replaces Undo</h2>
+      <p>The toolbar <code>Undo</code> button became a mode-aware <strong>Reset</strong>. In Compare it confirms deleting every generated variant; in single-process it keeps the new louder file and asks whether to keep or delete the original, then drops back to the initial drop screen. Shipped as 1.1 (Build 4) — the first notarized release since Build 2, bundling everything accumulated since: the Clean AI preset, 4K/1080p output quality, and multi-channel mono downmix.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/2a22ec9b9438fd6c1288c81a5a11e30f04af107d"><code>2a22ec9</code></a>.</p>
+    </article>
+
+    <article id="download-path" class="entry">
+      <div class="date">2026-06-23 · release</div>
+      <h2>A Download path and a tighter README</h2>
+      <p>Recorded Build 3 and added a Releases/Download section to the README. Build 3 was a stopgap local install: signed with a Developer ID and Gatekeeper-accepted, but <em>not</em> notarized — no notary credential was available on the machine — so the <code>dist</code> archive was kept for local use only, not distribution. The note flagged a 1.1 minor bump for the Clean preset, 4K/1080p, and downmix that had landed since Build 2.</p>
+      <p>Commits <a href="https://github.com/berndpl/Louder/commit/be45ff2"><code>be45ff2</code></a>, <a href="https://github.com/berndpl/Louder/commit/231b2c4"><code>231b2c4</code></a>.</p>
+    </article>
+
+    <article id="safe-rewriting" class="entry">
+      <div class="date">2026-06-22 · hardening</div>
+      <h2>Make in-place rewriting safe to trust</h2>
+      <p>A stability pass from an audit, since Louder overwrites your files where they live. Process launch is now cancel-safe — no terminate on an unlaunched <code>Process</code>. A failed batch rolls back fully, restoring every replaced original. And in-place replacement is atomic on the same volume. If any file fails, its original is left untouched.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/53ca6e4a01c3621b2978163f3ddec861267c1424"><code>53ca6e4</code></a>.</p>
+    </article>
+
+    <article id="voice-cleanup-pipeline" class="entry">
+      <div class="date">2026-06-22 · audio</div>
+      <h2>The voice-cleanup pipeline</h2>
+      <p>Added selectable local audio cleanup: DeepFilterNet denoise, gentle FFmpeg denoising, and a GTCRN noise-suppression stage — alongside an unchanged loudness-only mode. Pinned Apple Silicon and Intel DeepFilterNet executables plus the DeepFilterNet3 ONNX model are bundled, so every preset runs entirely on-device.</p>
+      <div class="decisions">
+        <div class="card"><h3>Decided for</h3><ul class="for">
+          <li>Bundling pinned local models — offline, private, recordings never uploaded</li>
+          <li>One persisted preset menu combining loudness target and denoising</li>
+        </ul></div>
+        <div class="card"><h3>Decided against</h3><ul class="against">
+          <li>Any cloud or upload-based processing</li>
+          <li>Arbitrary audio parameters beyond a small set of presets</li>
+        </ul></div>
+      </div>
+      <p>Commits <a href="https://github.com/berndpl/Louder/commit/133ada5"><code>133ada5</code></a>, <a href="https://github.com/berndpl/Louder/commit/5088842"><code>5088842</code></a>.</p>
+    </article>
+
+    <article id="drop-here-identity" class="entry">
+      <div class="date">2026-06-22 · identity</div>
+      <h2>An idle window that says &ldquo;drop here&rdquo;</h2>
+      <p>Gave the app its face: a foreground leaf mark and an animated idle-state GIF — arrows briefly sweeping inward toward the icon — with the README intro reworked to lead with it. Then a few passes to match the GIF's size, roundedness, and crop to the static screenshot so the two read as one.</p>
+      <p>Commits <a href="https://github.com/berndpl/Louder/commit/b879f93"><code>b879f93</code></a>, <a href="https://github.com/berndpl/Louder/commit/198b691"><code>198b691</code></a>, <a href="https://github.com/berndpl/Louder/commit/a1e5e11"><code>a1e5e11</code></a>.</p>
+    </article>
+
+    <article id="project-start" class="entry">
+      <div class="date">2026-06-21 · start</div>
+      <h2>The project so far</h2>
+      <p>First public snapshot, history pruned. Louder is a single-purpose macOS app: drag a video onto the Dock icon and it raises the voice to a consistent loudness target, backs up the original to <code>&lt;name&gt; - original.&lt;ext&gt;</code>, and replaces the file in place. It was born from an abandoned Shortcuts Quick Action — Apple's sandboxed <code>siriactionsd</code> daemon can never be granted access to OneDrive/CloudStorage files, but a real app in the user session gets the permission prompt once and works forever.</p>
+      <div class="decisions">
+        <div class="card"><h3>Decided for</h3><ul class="for">
+          <li>A real in-session app — gets OneDrive access once, keeps it</li>
+          <li>Click-to-play A/B comparison of measured loudness curves</li>
+        </ul></div>
+        <div class="card"><h3>Decided against</h3><ul class="against">
+          <li>A Shortcuts Quick Action (sandboxed, can't reach the files)</li>
+          <li>An editor, timeline, or App Store distribution</li>
+        </ul></div>
+      </div>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/573a290"><code>573a290</code></a>.</p>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-row">
+    <p>Code by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> and Claude Opus 4.8. This is a project by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> licensed under <a href="https://github.com/berndpl/Louder/blob/main/LICENSE">PolyForm Noncommercial</a>.</p>
+    <div class="footer-controls">
+      <div class="accent-picker">
+        <button class="accent-toggle" type="button" aria-label="Choose accent color" aria-haspopup="menu" aria-expanded="false"></button>
+        <div class="accent-palette" role="menu" aria-label="Accent colors" hidden></div>
+      </div>
+      <button class="theme-toggle" type="button" aria-label="Toggle color theme"></button>
+    </div>
+  </div>
+</footer>
+
+<script src="family-footer.js"></script>
+</body>
+</html>

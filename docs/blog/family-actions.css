@@ -1,0 +1,53 @@
+/*
+  Canonical primary action styling owned by Notes.
+  Labels and icons stay site-owned; button metrics and states stay identical.
+*/
+:root {
+  --family-action-height: 2rem;
+  --family-action-padding-y: .25rem;
+  --family-action-padding-x: .75rem;
+  --family-action-radius: 8px;
+  --family-action-gap: .4rem;
+}
+
+.action-link,
+.lets-talk-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--family-action-gap);
+  min-height: var(--family-action-height);
+  padding: var(--family-action-padding-y) var(--family-action-padding-x);
+  border-radius: var(--family-action-radius);
+  text-decoration: none;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+}
+
+.action-link:not(.secondary),
+.lets-talk-button {
+  color: var(--theme-button-text);
+  background-color: var(--theme-accent);
+  border: 1px solid var(--theme-accent);
+}
+
+.action-link:not(.secondary):hover,
+.lets-talk-button:hover {
+  color: var(--theme-button-text);
+  background-color: var(--theme-hover);
+  border-color: var(--theme-hover);
+  text-decoration: none;
+  filter: none;
+}
+
+.action-link:focus-visible,
+.lets-talk-button:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-link,
+  .lets-talk-button {
+    transition: none;
+  }
+}

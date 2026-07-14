@@ -1,0 +1,166 @@
+/*
+  Canonical family typography owned by Notes.
+  Project Websites copy this file and its fonts locally without changing these defaults.
+*/
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/inconsolata-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/inconsolata-700.woff2") format("woff2");
+}
+
+:root {
+  --family-font: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --family-body-font-size: 1rem;
+  --family-body-line-height: 1.6;
+  --family-content-font-size: 1.1rem;
+  --family-content-line-height: 1.4;
+}
+
+body {
+  font-family: var(--family-font);
+  font-size: var(--family-body-font-size);
+  line-height: var(--family-body-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  font-size: var(--family-content-font-size);
+  line-height: var(--family-content-line-height);
+}
+
+.hero .hero-copy h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+section > h2,
+section#features > h2,
+section#posts > h2,
+.feature-list h3,
+.feature-card h3,
+.card-item h3,
+.preset h3,
+article.entry h3,
+.card h3,
+.colophon > h2,
+.changelog-page > h1,
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+main h1,
+main h2,
+main h3,
+main h4,
+main h5 {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.short,
+.tagline,
+.feature-card p,
+.changelog-cta,
+article p,
+main p,
+.card p {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+article ul li,
+article ol li,
+main ul li,
+main ol li {
+  font-size: 1rem;
+  line-height: 29px;
+}
+
+.kicker,
+.date,
+.tag,
+.cta-note,
+.gallery figcaption,
+.watch-caption,
+.step-detail,
+figcaption,
+.thanks-intro,
+footer,
+.log-date,
+.log-cat,
+.log-top,
+.thanks summary,
+.thanks summary a,
+.thanks summary::before,
+.thanks .lic,
+.thanks details p,
+time {
+  font-size: .9rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.badge {
+  font-size: .6em;
+  font-weight: 400;
+}
+
+.action-link.secondary,
+.tab,
+.node,
+.node.active,
+.arrow {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.action-link:not(.secondary),
+.lets-talk-button {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+article code,
+main code,
+code,
+kbd {
+  font-size: .95em;
+}
+
+b,
+strong {
+  font-weight: 700;
+}
+
+.thanks summary a,
+.thanks summary::before {
+  font-weight: 400;
+}
+
+button,
+input,
+select,
+textarea,
+code,
+kbd {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}

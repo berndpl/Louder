@@ -1,0 +1,132 @@
+/*
+  Canonical family footer control owned by Notes.
+  Footer copy stays site-owned; row layout and appearance controls stay identical.
+*/
+.footer-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.footer-row p {
+  min-width: 0;
+  margin: 0;
+}
+
+.footer-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .25rem;
+}
+
+.accent-picker {
+  position: relative;
+  line-height: 0;
+}
+
+.theme-toggle,
+.accent-toggle {
+  flex: 0 0 auto;
+  padding: .2rem;
+  color: var(--theme-overlay0);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 0;
+  transition: color .25s ease;
+}
+
+.accent-toggle {
+  position: relative;
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.accent-toggle::before {
+  position: absolute;
+  inset: .3rem;
+  background: var(--theme-accent);
+  border-radius: 50%;
+  content: "";
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible,
+.accent-toggle:hover,
+.accent-toggle:focus-visible {
+  color: var(--theme-text);
+}
+
+.theme-toggle:focus-visible,
+.accent-toggle:focus-visible {
+  outline: 1px solid var(--theme-surface1);
+  outline-offset: 3px;
+}
+
+.theme-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+  stroke: none;
+}
+
+.accent-palette {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + .55rem);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1.65rem);
+  gap: .35rem;
+  padding: .55rem;
+  background: var(--theme-mantle);
+  border-radius: 10px;
+  box-shadow: 0 .4rem 1.5rem rgba(0, 0, 0, .18);
+}
+
+.accent-palette[hidden] {
+  display: none;
+}
+
+.accent-option {
+  position: relative;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.accent-option::before {
+  position: absolute;
+  inset: .25rem;
+  background: var(--accent-swatch);
+  border-radius: 50%;
+  content: "";
+}
+
+.accent-option:hover::before,
+.accent-option:focus-visible::before {
+  inset: .18rem;
+}
+
+.accent-option:focus-visible {
+  outline: 1px solid var(--theme-surface1);
+  outline-offset: 2px;
+}
+
+.accent-option[aria-checked="true"]::before {
+  inset: .1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .accent-toggle {
+    transition: none;
+  }
+}

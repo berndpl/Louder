@@ -1,0 +1,99 @@
+/*
+  Canonical family light/dark palette owned by Notes.
+  Projects preserve identity through --project-accent-* and --project-hover-*.
+*/
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --theme-base: #1e1e2e;
+  --theme-mantle: #181825;
+  --theme-surface0: #313244;
+  --theme-surface1: #45475a;
+  --theme-text: #cdd6f4;
+  --theme-heading: #cdd6f4;
+  --theme-body-rgb: 166, 173, 200;
+  --theme-body-alpha: 0.6;
+  --theme-subtext0: #a6adc8;
+  --theme-overlay0: #6c7086;
+  --theme-accent: var(--project-accent-dark, #b4befe);
+  --theme-link: var(--project-accent-dark, #b4befe);
+  --theme-hover: var(--project-hover-dark, #cba6f7);
+  --theme-generated-base: #1a1825;
+  --theme-generated-border: #3a3444;
+  --theme-generated: #ddb6f2;
+  --theme-generated-hover: #f5c2e7;
+  --theme-generated-body-rgb: 221, 182, 242;
+  --theme-button-text: #1e1e2e;
+  --graph-base: #1e1e2e;
+  --graph-chord: rgba(205, 214, 244, 0.07);
+  --graph-color-0: #cba6f7;
+  --graph-color-1: #a6e3a1;
+  --graph-color-2: #fab387;
+  --graph-color-3: #89b4fa;
+  --graph-color-4: #f38ba8;
+  --graph-color-5: #94e2d5;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --theme-base: #f7f8fb;
+  --theme-mantle: #eef0f6;
+  --theme-surface0: #d2d5e0;
+  --theme-surface1: #bfc3d3;
+  --theme-text: #363a4f;
+  --theme-heading: #2b2f43;
+  --theme-body-rgb: 54, 58, 79;
+  --theme-body-alpha: 0.78;
+  --theme-subtext0: #6f7489;
+  --theme-overlay0: #9498ab;
+  --theme-accent: var(--project-accent-light, #1f3df2);
+  --theme-link: var(--project-accent-light, #1f3df2);
+  --theme-hover: var(--project-hover-light, #5b6dff);
+  --theme-generated-base: #f0e9ff;
+  --theme-generated-border: #d8c8ff;
+  --theme-generated: #8839ef;
+  --theme-generated-hover: #6d4aff;
+  --theme-generated-body-rgb: 136, 57, 239;
+  --theme-button-text: #f7f8fb;
+  --graph-base: #f7f8fb;
+  --graph-chord: rgba(54, 58, 79, 0.07);
+  --graph-color-0: #8839ef;
+  --graph-color-1: #40a02b;
+  --graph-color-2: #fe640b;
+  --graph-color-3: #1e66f5;
+  --graph-color-4: #d20f39;
+  --graph-color-5: #179299;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    color-scheme: light;
+    --theme-base: #f7f8fb;
+    --theme-mantle: #eef0f6;
+    --theme-surface0: #d2d5e0;
+    --theme-surface1: #bfc3d3;
+    --theme-text: #363a4f;
+    --theme-heading: #2b2f43;
+    --theme-body-rgb: 54, 58, 79;
+    --theme-body-alpha: 0.78;
+    --theme-subtext0: #6f7489;
+    --theme-overlay0: #9498ab;
+    --theme-accent: var(--project-accent-light, #1f3df2);
+    --theme-link: var(--project-accent-light, #1f3df2);
+    --theme-hover: var(--project-hover-light, #5b6dff);
+    --theme-generated-base: #f0e9ff;
+    --theme-generated-border: #d8c8ff;
+    --theme-generated: #8839ef;
+    --theme-generated-hover: #6d4aff;
+    --theme-generated-body-rgb: 136, 57, 239;
+    --theme-button-text: #f7f8fb;
+    --graph-base: #f7f8fb;
+    --graph-chord: rgba(54, 58, 79, 0.07);
+    --graph-color-0: #8839ef;
+    --graph-color-1: #40a02b;
+    --graph-color-2: #fe640b;
+    --graph-color-3: #1e66f5;
+    --graph-color-4: #d20f39;
+    --graph-color-5: #179299;
+  }
+}

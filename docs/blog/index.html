@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!--
-  Louder website — single-page static HTML (project-site-new). Newest post first in #posts.
-  Plain static HTML; served by GitHub Pages from /docs.
+  Louder Website — self-contained static HTML served by GitHub Pages from /docs.
 -->
 <html lang="en">
 <head>
@@ -9,10 +8,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Louder for macOS</title>
 <meta name="description" content="Louder is an open-source macOS app: drop a video and the voice gets loud and clear — loudness, denoise, silence-crop and re-encode in one step.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
 <link rel="canonical" href="https://berndpl.github.io/Louder/blog/">
 
-<!-- Open Graph / link-share preview -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Louder">
 <meta property="og:title" content="Louder for macOS">
@@ -23,7 +22,6 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Louder for macOS — app icon and tagline">
 
-<!-- Twitter / X card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Louder for macOS">
 <meta name="twitter:description" content="Drop a video. The voice gets loud and clear. That's it. An open-source macOS app.">
@@ -35,368 +33,224 @@
 <link rel="icon" href="img/favicon-48.png" type="image/png" sizes="48x48">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
 <link rel="icon" href="img/icon.png" type="image/png" sizes="256x256">
+<script src="family-theme.js"></script>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="project-theme.css">
+<link rel="stylesheet" href="family-theme.css">
+<link rel="stylesheet" href="family-typography.css">
+<link rel="stylesheet" href="family-header.css">
+<link rel="stylesheet" href="family-footer.css">
+<link rel="stylesheet" href="family-actions.css">
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /> <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></symbol><symbol id="i-radio" viewBox="0 0 24 24"><path d="M16.247 7.761a6 6 0 0 1 0 8.478" /> <path d="M19.075 4.933a10 10 0 0 1 0 14.134" /> <path d="M4.925 19.067a10 10 0 0 1 0-14.134" /> <path d="M7.753 16.239a6 6 0 0 1 0-8.478" /> <circle cx="12" cy="12" r="2" /></symbol><symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /> <line x1="22" x2="16" y1="9" y2="15" /> <line x1="16" x2="22" y1="9" y2="15" /></symbol><symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /> <path d="M16 9a5 5 0 0 1 0 6" /> <path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="i-sliders-horizontal" viewBox="0 0 24 24"><path d="M10 5H3" /> <path d="M12 19H3" /> <path d="M14 3v4" /> <path d="M16 17v4" /> <path d="M21 12h-9" /> <path d="M21 19h-5" /> <path d="M21 5h-7" /> <path d="M8 10v4" /> <path d="M8 12H3" /></symbol><symbol id="i-fold-vertical" viewBox="0 0 24 24"><path d="M12 22v-6" /> <path d="M12 8V2" /> <path d="M4 12H2" /> <path d="M10 12H8" /> <path d="M16 12h-2" /> <path d="M22 12h-2" /> <path d="m15 19-3-3-3 3" /> <path d="m15 5-3 3-3-3" /></symbol><symbol id="i-pointer" viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8" /> <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /> <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" /> <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" /> <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></symbol><symbol id="i-ear" viewBox="0 0 24 24"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" /> <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4" /></symbol><symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /> <path d="M12 3v18" /></symbol><symbol id="i-audio-waveform" viewBox="0 0 24 24"><path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2" /></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M12 4v16" /> <path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /> <path d="M9 20h6" /></symbol><symbol id="i-code" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6" /> <path d="m8 6-6 6 6 6" /></symbol></svg>
+<a class="skip-link" href="#top">Skip to content</a>
 <header class="topbar">
   <div class="topbar-inner">
     <div class="nav-left">
-      <a class="blog-title" href="./"><img class="brand-mark" src="img/icon.png" alt="">Louder</a>
+      <nav class="site-nav" aria-label="Bernd Plontsch">
+        <a class="nav-link notes-link" href="https://notes.plontsch.de/">Notes</a>
+        <a class="nav-link about-link" href="https://notes.plontsch.de/about/">About</a>
+      </nav>
     </div>
     <div class="nav-right">
-      <a class="action-link" href="https://github.com/berndpl/Louder/releases/latest">Download for Mac</a>
-      <a class="action-link secondary" href="https://notes.plontsch.de/about/">Get in touch</a>
+      <nav class="project-nav" aria-label="Project Websites">
+        <a class="project-link" href="https://berndpl.github.io/Louder/blog/" aria-label="Louder" title="Louder" aria-current="page"><img class="project-mark" src="img/projects/louder.png" alt="" width="256" height="256"></a>
+        <a class="project-link" href="https://berndpl.github.io/Steps/blog/" aria-label="Steps" title="Steps"><img class="project-mark" src="img/projects/steps.png" alt="" width="256" height="256"></a>
+      </nav>
     </div>
   </div>
 </header>
 
-<main id="top">
-<header class="hero hero-with-shot">
-  <div class="hero-copy">
-    <img class="hero-icon" src="img/icon.png" alt="Louder app icon">
-    <h1>Louder</h1>
-    <p class="tagline">From a janky screen recording to a perfectly shareable video asset in a single step.</p>
-    <p class="short">Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and encode — all at once.</p>
-    <p class="hero-cta">
-      <span class="cta-primary">
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+  <symbol id="i-radio" viewBox="0 0 24 24"><path d="M16.247 7.761a6 6 0 0 1 0 8.478"/><path d="M19.075 4.933a10 10 0 0 1 0 14.134"/><path d="M4.925 19.067a10 10 0 0 1 0-14.134"/><path d="M7.753 16.239a6 6 0 0 1 0-8.478"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></symbol>
+  <symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>
+  <symbol id="i-sliders-horizontal" viewBox="0 0 24 24"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></symbol>
+  <symbol id="i-fold-vertical" viewBox="0 0 24 24"><path d="M12 22v-6"/><path d="M12 8V2"/><path d="M4 12H2"/><path d="M10 12H8"/><path d="M16 12h-2"/><path d="M22 12h-2"/><path d="m15 19-3-3-3 3"/><path d="m15 5-3 3-3-3"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol>
+</svg>
+
+<main id="top" tabindex="-1">
+  <header class="hero hero-with-shot">
+    <div class="hero-copy">
+      <img class="hero-icon" src="img/icon.png" alt="Louder app icon" width="256" height="256">
+      <h1>Louder</h1>
+      <p class="tagline">From a janky screen recording to a perfectly shareable video asset in a single step.</p>
+      <p class="short">Just drag your file onto Louder to enhance loudness, crop silence, remove noise, and encode — all at once.</p>
+      <p class="hero-cta">
         <a class="action-link" href="https://github.com/berndpl/Louder/releases/latest">Download for Mac</a>
-      </span>
-      <a class="action-link secondary" href="https://notes.plontsch.de/about/">Get in touch</a>
-    </p>
-  </div>
-  <figure class="hero-shot screen-stack" aria-label="Louder app screenshots — tap a screen to bring it to the front">
-    <div class="screen is-front"><img src="img/hero-drop.png" alt="Louder — drop a file to begin" width="1144" height="1004"></div>
-    <div class="screen is-mid"><img src="img/hero-studio.png" alt="Louder Studio — adjust the processing chain" width="1144" height="1004"></div>
-    <div class="screen is-back"><img src="img/hero-compare.png" alt="Louder Compare — original vs. processed, side by side" width="1144" height="1004"></div>
-  </figure>
-</header>
+      </p>
+    </div>
+    <figure class="hero-shot screen-stack" aria-label="Louder app screenshots">
+      <div class="screen is-front"><img src="img/hero-drop.png" alt="Louder — drop a file to begin" width="1144" height="1004"></div>
+      <div class="screen is-mid"><img src="img/hero-studio.png" alt="Louder Studio — adjust the processing chain" width="1144" height="1004"></div>
+      <div class="screen is-back"><img src="img/hero-compare.png" alt="Louder Compare — original vs. processed, side by side" width="1144" height="1004"></div>
+      <button class="screen-cycle" type="button" aria-label="Show next Louder screenshot"></button>
+    </figure>
+  </header>
 
-<section id="features">
-  <div class="tabs" role="tablist">
-    <button id="tab-features" class="tab is-active" data-panel="panel-features" role="tab" aria-selected="true" aria-controls="panel-features">Features</button>
-    <button id="tab-presets" class="tab" data-panel="panel-presets" role="tab" aria-selected="false" aria-controls="panel-presets">Presets</button>
-  </div>
-
-  <div id="panel-features" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-features">
-    <ul class="feature-list">
-      <li>
-        <span class="feature-ico"><svg class="sym" aria-hidden="true"><use href="#i-pointer"/></svg></span>
-        <div>
-          <h3>Just drop it</h3>
-          <p>Drag any video onto the window or the Dock icon and Louder takes it from there — no import dialogs, no settings to wade through. Your file is replaced with the enhanced version in a single step.</p>
-        </div>
-      </li>
-      <li>
-        <span class="feature-ico"><svg class="sym" aria-hidden="true"><use href="#i-ear"/></svg></span>
-        <div>
-          <h3>Built for EarPods</h3>
-          <p>Screencasts recorded on EarPods or a laptop mic come out thin, quiet, and easy to miss. Louder is tuned for exactly that voice — turning a janky take into something you'd actually share.</p>
-        </div>
-      </li>
-      <li>
-        <span class="feature-ico"><svg class="sym" aria-hidden="true"><use href="#i-columns-2"/></svg></span>
-        <div>
-          <h3>Compare before you commit</h3>
-          <p>Not sure which preset to trust? Compare mode renders them side by side so you can hear the difference for yourself before you pick the keeper.</p>
-        </div>
-      </li>
-      <li>
-        <span class="feature-ico"><svg class="sym" aria-hidden="true"><use href="#i-audio-waveform"/></svg></span>
-        <div>
-          <h3>See what changed</h3>
-          <p>A clear visual readout — loudness curves, integrated LUFS, and estimated SNR — shows exactly how much quieter the noise got and how much louder the voice came through.</p>
-        </div>
-      </li>
-    </ul>
-  </div>
-
-  <div id="panel-presets" class="tab-panel" role="tabpanel" aria-labelledby="tab-presets" hidden>
-    <p class="section-lead">Pick one once. Each cleans the voice a little differently, then brings it to a consistent <strong>−16&nbsp;LUFS</strong>. Hover a step to see what it does.</p>
+  <section id="presets" aria-label="Presets">
+    <p class="section-lead">Pick a preset. Each cleans the voice a little differently, then brings it to a consistent −16&nbsp;LUFS.</p>
     <div class="presets">
+      <article class="preset">
+        <h3><svg class="sym" aria-hidden="true"><use href="#i-leaf"/></svg>Louder</h3>
+        <div class="chain">
+          <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
+        </div>
+        <p class="step-detail">The safe default — gentle cleanup, then a consistent level.</p>
+      </article>
 
-    <article class="preset">
-      <h3><svg class="sym" aria-hidden="true"><use href="#i-leaf"/></svg>Louder</h3>
-      <div class="chain">
-        <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
-      </div>
-      <p class="step-detail">The safe default — gentle cleanup, then a consistent level.</p>
-    </article>
+      <article class="preset">
+        <h3><svg class="sym" aria-hidden="true"><use href="#i-radio"/></svg>Studio</h3>
+        <div class="chain">
+          <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Corrective tone shaping — high-pass, warmth, presence and de-harsh EQ."><svg class="sym" aria-hidden="true"><use href="#i-sliders-horizontal"/></svg>EQ</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Evens out level dynamics for a steadier, broadcast feel."><svg class="sym" aria-hidden="true"><use href="#i-fold-vertical"/></svg>Compress</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
+        </div>
+        <p class="step-detail">A warm broadcast tone — rumble cut, presence shaping, gentle compression.</p>
+      </article>
 
-    <article class="preset">
-      <h3><svg class="sym" aria-hidden="true"><use href="#i-radio"/></svg>Studio</h3>
-      <div class="chain">
-        <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Corrective tone shaping — high-pass, warmth, presence and de-harsh EQ."><svg class="sym" aria-hidden="true"><use href="#i-sliders-horizontal"/></svg>EQ</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Evens out level dynamics for a steadier, broadcast feel."><svg class="sym" aria-hidden="true"><use href="#i-fold-vertical"/></svg>Compress</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
-      </div>
-      <p class="step-detail">A warm broadcast tone — rumble cut, presence shaping, gentle compression.</p>
-    </article>
+      <article class="preset">
+        <h3><svg class="sym" aria-hidden="true"><use href="#i-volume-x"/></svg>Focus</h3>
+        <div class="chain">
+          <button class="node" data-detail="Ducks intermittent background events between words (Apple SoundAnalysis)."><svg class="sym" aria-hidden="true"><use href="#i-volume-x"/></svg>Gate</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
+        </div>
+        <p class="step-detail">Best for occasionally noisy rooms — a door, a dog, keyboard clatter.</p>
+      </article>
 
-    <article class="preset">
-      <h3><svg class="sym" aria-hidden="true"><use href="#i-volume-x"/></svg>Focus</h3>
-      <div class="chain">
-        <button class="node" data-detail="Ducks intermittent background events between words (Apple SoundAnalysis)."><svg class="sym" aria-hidden="true"><use href="#i-volume-x"/></svg>Gate</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="DeepFilterNet3 removes steady background noise and hiss, keeping the voice intact."><svg class="sym" aria-hidden="true"><use href="#i-sparkles"/></svg>Denoise</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
-      </div>
-      <p class="step-detail">Best for occasionally noisy rooms — a door, a dog, keyboard clatter.</p>
-    </article>
-
-    <article class="preset">
-      <h3><svg class="sym" aria-hidden="true"><use href="#i-wand-sparkles"/></svg>Clean</h3>
-      <div class="chain">
-        <button class="node" data-detail="Rebuilds the voice with an on-device neural model (GTCRN). Band-limited — clearer but slightly duller."><svg class="sym" aria-hidden="true"><use href="#i-wand-sparkles"/></svg>Enhance</button>
-        <span class="arrow">›</span>
-        <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
-      </div>
-      <p class="step-detail">The strongest cleanup — try it when the others leave too much noise.</p>
-    </article>
-
+      <article class="preset">
+        <h3><svg class="sym" aria-hidden="true"><use href="#i-wand-sparkles"/></svg>Clean</h3>
+        <div class="chain">
+          <button class="node" data-detail="Rebuilds the voice with an on-device neural model (GTCRN). Band-limited — clearer but slightly duller."><svg class="sym" aria-hidden="true"><use href="#i-wand-sparkles"/></svg>Enhance</button>
+          <span class="arrow">›</span>
+          <button class="node" data-detail="Normalizes to −16 LUFS (EBU R128), encoded as 48 kHz AAC-LC."><svg class="sym" aria-hidden="true"><use href="#i-volume-2"/></svg>Loudness</button>
+        </div>
+        <p class="step-detail">The strongest cleanup — try it when the others leave too much noise.</p>
+      </article>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="posts">
-
-  <h2>Changelog</h2>
-
-  <article class="entry">
-    <div class="date">2026-07-08 · release</div>
-    <h3>Pick the colors that tell you how it sounds</h3>
-    <p>1.3 (Build 7) adds an <strong>Appearance</strong> settings tab that recolors the assessment cards. The positive · caution · critical indicators now draw from a palette you choose — 16 palettes derived from the OKLCH palette definitions in the Style Explorer, each a single-hue triad tuned for both light and dark mode. <strong>Ocean</strong> is the new default.</p>
-    <p>The picker sits next to a live <strong>preview</strong> of the three cards, so you see the colors on real indicators before committing, plus an OKLCH color-options reference grouped by role. Press <kbd>↑</kbd> / <kbd>↓</kbd> to step through palettes (or <kbd>P</kbd> to cycle) and the indicators recolor instantly.</p>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/4c48212f1bf18ec1a921abcde26b073b7d70bdbc"><code>4c48212</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-07-01 · release</div>
-    <h3>From a recording in one folder to a shareable file in another</h3>
-    <p>1.2 (Build 6) adds a file-handling workflow that runs <em>before</em> enhancement. A new <strong>Files</strong> settings tab lets you point Louder at a target folder: on drop it moves (or copies) the recording there, then renames it to your convention — a body you choose plus an appended recording date (<code>yyMMdd</code>) — and only then processes it. Settings now split into <strong>Files</strong> and <strong>Processing</strong> tabs to hold it all.</p>
-    <p>Relocation became its own session-level step, kept separate from per-run processing, so switching presets and using Compare no longer break when renaming is on. Because these are irreplaceable recordings, the safety rules are now covered by unit tests: Copy never touches the source, Move and undo round-trip cleanly, "Rename original" backups always restore, and undo refuses to run if a required file is missing.</p>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/5ea33bfa4d1e09855f340e0df7b534c9fecef855"><code>5ea33bf</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-28 · release</div>
-    <h3>The first real download, and an app that explains itself</h3>
-    <p>1.1 (Build 5) is the first <strong>published</strong> release — notarized, stapled, and attached to a GitHub release, not just a local install. Two things landed for it. When <code>ffmpeg</code>/<code>ffprobe</code> are missing, the drop zone is replaced by a guided setup card that hands you a ready <code>brew install</code> command, re-checks when you return to the app, and dismisses itself once the tools are there — no relaunch. And every build now stamps its own date: a <code>BuildDate</code> in the bundle and an About panel showing version · build · build date, so you always know exactly what you're running.</p>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/2c916ff3d564c996d222623aae7a6ee247e9398d"><code>2c916ff</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-27 · reset</div>
-    <h3>Reset replaces Undo</h3>
-    <p>The toolbar <code>Undo</code> button became a mode-aware <strong>Reset</strong>. In Compare it confirms deleting every generated variant; in single-process it keeps the new louder file and asks whether to keep or delete the original, then drops back to the initial drop screen. Shipped as 1.1 (Build 4) — the first notarized release since Build 2, bundling everything accumulated since: the Clean AI preset, 4K/1080p output quality, and multi-channel mono downmix.</p>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/2a22ec9b9438fd6c1288c81a5a11e30f04af107d"><code>2a22ec9</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-23 · release</div>
-    <h3>A Download path and a tighter README</h3>
-    <p>Recorded Build 3 and added a Releases/Download section to the README. Build 3 was a stopgap local install: signed with a Developer ID and Gatekeeper-accepted, but <em>not</em> notarized — no notary credential was available on the machine — so the <code>dist</code> archive was kept for local use only, not distribution. The note flagged a 1.1 minor bump for the Clean preset, 4K/1080p, and downmix that had landed since Build 2.</p>
-    <p>Commits <a href="https://github.com/berndpl/Louder/commit/be45ff2"><code>be45ff2</code></a>, <a href="https://github.com/berndpl/Louder/commit/231b2c4"><code>231b2c4</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-22 · hardening</div>
-    <h3>Make in-place rewriting safe to trust</h3>
-    <p>A stability pass from an audit, since Louder overwrites your files where they live. Process launch is now cancel-safe — no terminate on an unlaunched <code>Process</code>. A failed batch rolls back fully, restoring every replaced original. And in-place replacement is atomic on the same volume. If any file fails, its original is left untouched.</p>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/53ca6e4a01c3621b2978163f3ddec861267c1424"><code>53ca6e4</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-22 · audio</div>
-    <h3>The voice-cleanup pipeline</h3>
-    <p>Added selectable local audio cleanup: DeepFilterNet denoise, gentle FFmpeg denoising, and a GTCRN noise-suppression stage — alongside an unchanged loudness-only mode. Pinned Apple Silicon and Intel DeepFilterNet executables plus the DeepFilterNet3 ONNX model are bundled, so every preset runs entirely on-device.</p>
-    <div class="decisions">
-      <div class="card"><h3>Decided for</h3><ul class="for">
-        <li>Bundling pinned local models — offline, private, recordings never uploaded</li>
-        <li>One persisted preset menu combining loudness target and denoising</li>
-      </ul></div>
-      <div class="card"><h3>Decided against</h3><ul class="against">
-        <li>Any cloud or upload-based processing</li>
-        <li>Arbitrary audio parameters beyond a small set of presets</li>
-      </ul></div>
+  <section id="posts" aria-label="Recent changes">
+    <div class="log">
+      <a class="log-row" href="changelog.html#appearance-colors"><time class="log-date" datetime="2026-07-08">2026-07-08</time><p class="log-title">Pick the colors that tell you how it sounds</p></a>
+      <a class="log-row" href="changelog.html#file-workflow"><time class="log-date" datetime="2026-07-01">2026-07-01</time><p class="log-title">From a recording in one folder to a shareable file in another</p></a>
+      <a class="log-row" href="changelog.html#first-download"><time class="log-date" datetime="2026-06-28">2026-06-28</time><p class="log-title">The first real download, and an app that explains itself</p></a>
     </div>
-    <p>Commits <a href="https://github.com/berndpl/Louder/commit/133ada5"><code>133ada5</code></a>, <a href="https://github.com/berndpl/Louder/commit/5088842"><code>5088842</code></a>.</p>
-  </article>
+    <a class="changelog-cta" href="changelog.html">View Changelog</a>
+  </section>
 
-  <article class="entry">
-    <div class="date">2026-06-22 · identity</div>
-    <h3>An idle window that says &ldquo;drop here&rdquo;</h3>
-    <p>Gave the app its face: a foreground leaf mark and an animated idle-state GIF — arrows briefly sweeping inward toward the icon — with the README intro reworked to lead with it. Then a few passes to match the GIF's size, roundedness, and crop to the static screenshot so the two read as one.</p>
-    <p>Commits <a href="https://github.com/berndpl/Louder/commit/b879f93"><code>b879f93</code></a>, <a href="https://github.com/berndpl/Louder/commit/198b691"><code>198b691</code></a>, <a href="https://github.com/berndpl/Louder/commit/a1e5e11"><code>a1e5e11</code></a>.</p>
-  </article>
-
-  <article class="entry">
-    <div class="date">2026-06-21 · start</div>
-    <h3>The project so far</h3>
-    <p>First public snapshot, history pruned. Louder is a single-purpose macOS app: drag a video onto the Dock icon and it raises the voice to a consistent loudness target, backs up the original to <code>&lt;name&gt; - original.&lt;ext&gt;</code>, and replaces the file in place. It was born from an abandoned Shortcuts Quick Action — Apple's sandboxed <code>siriactionsd</code> daemon can never be granted access to OneDrive/CloudStorage files, but a real app in the user session gets the permission prompt once and works forever.</p>
-    <div class="decisions">
-      <div class="card"><h3>Decided for</h3><ul class="for">
-        <li>A real in-session app — gets OneDrive access once, keeps it</li>
-        <li>Click-to-play A/B comparison of measured loudness curves</li>
-      </ul></div>
-      <div class="card"><h3>Decided against</h3><ul class="against">
-        <li>A Shortcuts Quick Action (sandboxed, can't reach the files)</li>
-        <li>An editor, timeline, or App Store distribution</li>
-      </ul></div>
-    </div>
-    <p>Commit <a href="https://github.com/berndpl/Louder/commit/573a290"><code>573a290</code></a>.</p>
-  </article>
-
-</section>
-
-<section id="thanks" class="colophon">
-  <h2><svg class="sym" aria-hidden="true"><use href="#i-heart"/></svg> Thank you</h2>
-  <p class="thanks-intro">Louder builds on the work of these projects — and the people behind them:
-    <a href="https://ffmpeg.org">FFmpeg</a>,
-    <a href="https://github.com/Rikorose/DeepFilterNet">DeepFilterNet</a>,
-    <a href="https://github.com/Xiaobin-Rong/gtcrn">GTCRN</a>,
-    <a href="https://tech.ebu.ch/publications/r128">EBU R128</a>,
-    <a href="https://github.com/googlefonts/Inconsolata">Inconsolata</a>,
-    <a href="https://lucide.dev">Lucide</a>,
-    <a href="https://www.swift.org">Swift &amp; SwiftUI</a>.
-  </p>
-</section>
+  <section id="thanks" class="colophon" aria-labelledby="thanks-title">
+    <h2 id="thanks-title"><svg class="sym" aria-hidden="true"><use href="#i-heart"/></svg> Thank you</h2>
+    <p class="thanks-intro">Louder builds on the work of these projects — and the people behind them:
+      <a href="https://ffmpeg.org">FFmpeg</a>,
+      <a href="https://github.com/Rikorose/DeepFilterNet">DeepFilterNet</a>,
+      <a href="https://github.com/Xiaobin-Rong/gtcrn">GTCRN</a>,
+      <a href="https://tech.ebu.ch/publications/r128">EBU R128</a>,
+      <a href="https://github.com/googlefonts/Inconsolata">Inconsolata</a>,
+      <a href="https://lucide.dev">Lucide</a>,
+      <a href="https://www.swift.org">Swift &amp; SwiftUI</a>.
+    </p>
+  </section>
 </main>
 
-<footer>Code by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> and Claude Opus 4.8. This is a project by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> licensed under <a href="https://github.com/berndpl/Louder/blob/main/LICENSE">PolyForm Noncommercial</a></footer>
+<footer>
+  <div class="footer-row">
+    <p>Code by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> and Claude Opus 4.8. This is a project by <a href="https://notes.plontsch.de/about/">Bernd Plontsch</a> licensed under <a href="https://github.com/berndpl/Louder/blob/main/LICENSE">PolyForm Noncommercial</a>.</p>
+    <div class="footer-controls">
+      <div class="accent-picker">
+        <button class="accent-toggle" type="button" aria-label="Choose accent color" aria-haspopup="menu" aria-expanded="false"></button>
+        <div class="accent-palette" role="menu" aria-label="Accent colors" hidden></div>
+      </div>
+      <button class="theme-toggle" type="button" aria-label="Toggle color theme"></button>
+    </div>
+  </div>
+</footer>
 
+<script src="family-footer.js"></script>
 <script>
-document.querySelectorAll('.tab').forEach(function (tab) {
-  tab.addEventListener('click', function () {
-    document.querySelectorAll('.tab').forEach(function (t) {
-      t.classList.remove('is-active');
-      t.setAttribute('aria-selected', 'false');
-    });
-    document.querySelectorAll('.tab-panel').forEach(function (p) {
-      p.classList.remove('is-active');
-      p.hidden = true;
-    });
-    var panel = document.getElementById(tab.dataset.panel);
-    tab.classList.add('is-active');
-    tab.setAttribute('aria-selected', 'true');
-    panel.hidden = false;
-    panel.classList.add('is-active');
-    updateChainFades();
-  });
-});
-function updateChainFade(ch) {
-  var more = ch.scrollWidth - ch.clientWidth - ch.scrollLeft > 2;
-  ch.classList.toggle('can-scroll-right', more);
+function updateChainFade(chain) {
+  var more = chain.scrollWidth - chain.clientWidth - chain.scrollLeft > 2;
+  chain.classList.toggle('can-scroll-right', more);
 }
+
 function updateChainFades() {
   document.querySelectorAll('.chain').forEach(updateChainFade);
 }
-document.querySelectorAll('.chain').forEach(function (ch) {
-  ch.addEventListener('scroll', function () { updateChainFade(ch); });
+
+document.querySelectorAll('.chain').forEach(function (chain) {
+  chain.addEventListener('scroll', function () { updateChainFade(chain); });
 });
 window.addEventListener('resize', updateChainFades);
 updateChainFades();
 
-// Staggered screenshot stack adapted from the Steps Website: all hero states stay visible,
-// while tap, keyboard, or autoplay rotates which screen leads the stack.
 (function () {
   var stack = document.querySelector('.screen-stack');
   if (!stack) return;
   var items = [].slice.call(stack.children);
+  var cycleButton = stack.querySelector('.screen-cycle');
+  items = items.filter(function (element) { return element.classList.contains('screen'); });
   if (items.length < 2) return;
   var slots = ['is-front', 'is-mid', 'is-back'];
   var order = items.slice();
-  var timer, moveFrame;
-  function applyLayers() {
-    order.forEach(function (el, i) {
-      el.style.zIndex = String(slots.length - Math.min(i, slots.length - 1));
+
+  function render() {
+    order.forEach(function (element, index) {
+      slots.forEach(function (slot) { element.classList.remove(slot); });
+      element.classList.add(slots[Math.min(index, slots.length - 1)]);
     });
   }
-  function moveScreens() {
-    order.forEach(function (el, i) {
-      slots.forEach(function (slot) { el.classList.remove(slot); });
-      el.classList.add(slots[Math.min(i, slots.length - 1)]);
-      el.tabIndex = i === 0 ? -1 : 0;
-    });
-  }
-  function render(moveOnNextFrame) {
-    if (moveFrame) cancelAnimationFrame(moveFrame);
-    applyLayers();
-    if (moveOnNextFrame) {
-      moveFrame = requestAnimationFrame(moveScreens);
-    } else {
-      moveScreens();
-    }
-  }
-  function bringToFront(el) {
-    var i = order.indexOf(el);
-    if (i <= 0) return;
-    order = order.slice(i).concat(order.slice(0, i));
-    render(true);
-  }
+
   function advance() {
     order = order.slice(1).concat(order.slice(0, 1));
-    render(true);
+    render();
   }
-  function restart() {
-    clearInterval(timer);
-    timer = setInterval(advance, 4500);
-  }
-  items.forEach(function (el) {
-    el.setAttribute('role', 'button');
-    el.addEventListener('click', function () { bringToFront(el); restart(); });
-    el.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        bringToFront(el);
-        restart();
-      }
-    });
-  });
-  stack.addEventListener('mouseenter', function () { clearInterval(timer); });
-  stack.addEventListener('mouseleave', restart);
-  render(false);
-  restart();
+
+  cycleButton.addEventListener('click', advance);
+  render();
 })();
+
 document.querySelectorAll('.preset').forEach(function (card) {
   var detail = card.querySelector('.step-detail');
-  var def = detail.textContent;
+  var defaultDetail = detail.textContent;
   var nodes = card.querySelectorAll('.node');
+
   function show(node) {
-    nodes.forEach(function (n) { n.classList.remove('active'); });
+    nodes.forEach(function (item) { item.classList.remove('active'); });
     node.classList.add('active');
     detail.textContent = node.dataset.detail;
   }
+
   function reset() {
-    nodes.forEach(function (n) { n.classList.remove('active'); });
-    detail.textContent = def;
+    nodes.forEach(function (item) { item.classList.remove('active'); });
+    detail.textContent = defaultDetail;
   }
+
   nodes.forEach(function (node) {
     node.addEventListener('mouseenter', function () { show(node); });
+    node.addEventListener('focus', function () { show(node); });
     node.addEventListener('click', function () { show(node); });
   });
-  card.addEventListener('mouseleave', reset);
-});
 
-// Reveal-on-scroll topbar: hidden by default, slides in only once the hero (masthead) has
-// scrolled off — so there's no header at the top on first view, and no duplicate CTA.
-(function () {
-  var bar = document.querySelector('.topbar');
-  if (!bar) return;
-  var hero = document.querySelector('.hero');
-  var threshold = function () { return hero ? Math.max(80, hero.offsetHeight - 72) : 120; };
-  var onScroll = function () { bar.classList.toggle('is-scrolled', window.scrollY > threshold()); };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll, { passive: true });
-  onScroll();
-})();
+  card.addEventListener('mouseleave', function () {
+    if (!card.contains(document.activeElement)) reset();
+  });
+  card.addEventListener('focusout', function (event) {
+    if (!card.contains(event.relatedTarget)) reset();
+  });
+});
 </script>
 </body>
 </html>

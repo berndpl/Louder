@@ -1,0 +1,9 @@
+:root {
+  --project-accent-light: #1f3df2;
+  --project-hover-light: #5b6dff;
+  --project-accent-dark: #89b4fa;
+  --project-hover-dark: #b4befe;
+  --family-content-width: 800px;
+  --family-layout-inset: 20px;
+  --family-layout-inset-compact: 16px;
+}
