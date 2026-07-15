@@ -45,6 +45,49 @@
   outline-offset: 3px;
 }
 
+.not-found {
+  min-height: min(70vh, 38rem);
+  max-width: 32rem;
+  padding: clamp(4rem, 12vw, 8rem) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.not-found-icon {
+  width: var(--family-hero-icon-size, 4rem);
+  height: var(--family-hero-icon-size, 4rem);
+  margin-bottom: 1rem;
+  display: block;
+  object-fit: contain;
+}
+
+.not-found-code {
+  margin: 0 0 .4rem;
+  color: var(--theme-overlay0);
+  font-size: .9rem;
+  font-weight: var(--family-weight-quiet, 300);
+  line-height: 1;
+}
+
+.not-found h1 {
+  margin: 0;
+  color: var(--theme-heading);
+  font-size: var(--family-page-title-size, 1.6rem);
+  font-weight: var(--family-weight-bold, 700);
+  line-height: 1.2;
+}
+
+.not-found-copy {
+  max-width: 30rem;
+  margin: .75rem 0 0;
+}
+
+.not-found-action {
+  margin: 1.25rem 0 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .action-link,
   .lets-talk-button {

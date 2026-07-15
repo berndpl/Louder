@@ -24,7 +24,7 @@ their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.25`.
+Family contract version applied: `2026-07-15.26`.
 
 Local family decisions:
 
@@ -35,6 +35,8 @@ Local family decisions:
 - Keep only the family font and light/dark controls in the footer. Custom palettes are a non-app
   family feature; Louder always uses its recorded blue Website palette.
 - Deliberately omit the family primary feature grid; Bernd chose Presets as Louder's only product module.
+- Keep the custom 404 at `docs/404.html`, using the Louder icon, blue palette, family shell, and
+  one action back to the Website.
 
 ## Hero story and media rationale
 
@@ -128,3 +130,5 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   parameters and omits the non-app palette picker.
 - Refreshed the canonical family typography, header, footer, theme, and action assets without
   changing product copy, screenshots, Presets content, changelog prose, or carousel behavior.
+- Applied family contract `2026-07-15.26` with a custom Pages-root 404 that preserves the Louder
+  identity and resolves local assets from missing URLs at any depth.
