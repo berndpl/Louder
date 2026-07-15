@@ -33,8 +33,8 @@
 .action-link:not(.secondary):hover,
 .lets-talk-button:hover {
   color: var(--theme-button-text);
-  background-color: var(--theme-hover);
-  border-color: var(--theme-hover);
+  background-color: var(--theme-action-hover, var(--theme-hover));
+  border-color: var(--theme-action-hover, var(--theme-hover));
   text-decoration: none;
   filter: none;
 }
@@ -47,21 +47,22 @@
 
 .action-symbol {
   display: block;
-  transform: translateY(0) scale(1);
-  transform-origin: center;
+  transform: scale(1);
+  transform-box: border-box;
+  transform-origin: 50% 50%;
   transition: transform 560ms cubic-bezier(.16, 1.8, .32, 1);
 }
 
 @media (hover: hover) {
   .action-link:not(.secondary):hover > .action-symbol,
   .lets-talk-button:hover > .action-symbol {
-    transform: translateY(-.12em) scale(1.45);
+    transform: scale(1.45);
   }
 }
 
 .action-link:not(.secondary):focus-visible > .action-symbol,
 .lets-talk-button:focus-visible > .action-symbol {
-  transform: translateY(-.12em) scale(1.45);
+  transform: scale(1.45);
 }
 
 .not-found {

@@ -19,12 +19,15 @@ stored JetBrains Mono as the URL-selected alternative. Louder's light accent pai
 `#5b6dff`; its dark pair is `#89b4fa` / `#b4befe`. The blue accent is used for links, primary
 actions, interactive emphasis, and the current-Website outline.
 
+Primary-action hover uses a complementary pink pair: `#a41469` in light appearance and `#f5c2e7`
+in dark appearance. Link hover remains on the blue ramp.
+
 Preserve the blue accent pairs unless the app identity changes. Louder's UI screenshots can use
 their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.27`.
+Family contract version applied: `2026-07-15.28`.
 
 Local family decisions:
 
@@ -134,3 +137,5 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   identity and resolves local assets from missing URLs at any depth.
 - Applied family contract `2026-07-15.27`; the shared primary action asset now supports springing
   symbols, while Louder's current text-only Download action remains unchanged.
+- Applied family contract `2026-07-15.28`; shared symbols now scale from their exact center and
+  Louder's primary action hover uses the project-owned pink secondary rather than brighter blue.
