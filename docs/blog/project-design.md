@@ -27,7 +27,7 @@ their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.31`.
+Family contract version applied: `2026-07-15.32`.
 
 Local family decisions:
 
@@ -40,6 +40,8 @@ Local family decisions:
 - Deliberately omit the family primary feature grid; Bernd chose Presets as Louder's only product module.
 - Keep the custom 404 at `docs/404.html`, using the Louder icon, blue palette, family shell, and
   one action back to the Website.
+- Keep the Website and GitHub Pages deployment available, but omit the retired family project
+  directory and copied project icons.
 
 ## Hero story and media rationale
 
