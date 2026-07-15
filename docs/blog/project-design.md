@@ -27,7 +27,7 @@ their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.28`.
+Family contract version applied: `2026-07-15.29`.
 
 Local family decisions:
 
@@ -139,3 +139,5 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   symbols, while Louder's current text-only Download action remains unchanged.
 - Applied family contract `2026-07-15.28`; shared symbols now scale from their exact center and
   Louder's primary action hover uses the project-owned pink secondary rather than brighter blue.
+- Applied family contract `2026-07-15.29`; links and enabled button-like controls now explicitly
+  use the hand pointer instead of relying on browser cursor defaults.

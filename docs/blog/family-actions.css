@@ -10,6 +10,14 @@
   --family-action-gap: .4rem;
 }
 
+:where(
+  a[href]:not([aria-disabled="true"]),
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not(button):not([aria-disabled="true"])
+) {
+  cursor: pointer;
+}
+
 .action-link,
 .lets-talk-button {
   display: inline-flex;
