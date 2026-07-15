@@ -27,7 +27,7 @@ their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.30`.
+Family contract version applied: `2026-07-15.31`.
 
 Local family decisions:
 
@@ -143,3 +143,5 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   use the hand pointer instead of relying on browser cursor defaults.
 - Applied family contract `2026-07-15.30`; the global About and author links now resolve to the
   canonical family-styled page at `https://plontsch.de/`.
+- Applied family contract `2026-07-15.31`; removed duplicate local body width and responsive insets,
+  moved shared structural metrics to the canonical shell, and made the header transparent.

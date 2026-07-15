@@ -13,6 +13,10 @@
   --family-project-icon-size: 1.4rem;
   --family-project-link-size: 2rem;
   --family-project-link-radius: 8px;
+  --family-hero-icon-size: 4rem;
+  --family-feature-icon-size: 2.5rem;
+  --family-feature-glyph-size: 1.3rem;
+  --family-changelog-top-space: 3.5rem;
 }
 
 *,
@@ -48,7 +52,7 @@ body {
   margin-right: calc(50% - 50vw);
   margin-left: calc(50% - 50vw);
   border-bottom: 0;
-  background: var(--theme-base);
+  background: transparent;
   font-family: var(--family-font, "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: var(--family-body-font-size, 1rem);
   -webkit-backdrop-filter: none;

@@ -12,9 +12,6 @@ html {
 }
 
 body {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 20px 20px;
   color: var(--theme-text);
   background: var(--theme-base);
 }
@@ -104,8 +101,8 @@ kbd {
 }
 
 .hero-icon {
-  width: 4rem;
-  height: 4rem;
+  width: var(--family-hero-icon-size);
+  height: var(--family-hero-icon-size);
   display: block;
   object-fit: contain;
 }
@@ -332,7 +329,7 @@ section > h2 {
 }
 
 #posts {
-  padding: 3.5rem 0 2rem;
+  padding: var(--family-changelog-top-space) 0 2rem;
 }
 
 .log {
@@ -506,10 +503,6 @@ footer {
 }
 
 @media (max-width: 720px) {
-  body {
-    padding: 0 16px 16px;
-  }
-
   .hero {
     padding: 2.5rem 0 1.5rem;
   }
