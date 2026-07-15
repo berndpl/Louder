@@ -45,6 +45,25 @@
   outline-offset: 3px;
 }
 
+.action-symbol {
+  display: block;
+  transform: translateY(0) scale(1);
+  transform-origin: center;
+  transition: transform 560ms cubic-bezier(.16, 1.8, .32, 1);
+}
+
+@media (hover: hover) {
+  .action-link:not(.secondary):hover > .action-symbol,
+  .lets-talk-button:hover > .action-symbol {
+    transform: translateY(-.12em) scale(1.45);
+  }
+}
+
+.action-link:not(.secondary):focus-visible > .action-symbol,
+.lets-talk-button:focus-visible > .action-symbol {
+  transform: translateY(-.12em) scale(1.45);
+}
+
 .not-found {
   min-height: min(70vh, 38rem);
   max-width: 32rem;
@@ -90,7 +109,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .action-link,
-  .lets-talk-button {
+  .lets-talk-button,
+  .action-symbol {
     transition: none;
+  }
+
+  .action-link:not(.secondary):hover > .action-symbol,
+  .action-link:not(.secondary):focus-visible > .action-symbol,
+  .lets-talk-button:hover > .action-symbol,
+  .lets-talk-button:focus-visible > .action-symbol {
+    transform: none;
   }
 }

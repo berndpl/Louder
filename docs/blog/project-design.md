@@ -24,7 +24,7 @@ their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-15.26`.
+Family contract version applied: `2026-07-15.27`.
 
 Local family decisions:
 
@@ -132,3 +132,5 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   changing product copy, screenshots, Presets content, changelog prose, or carousel behavior.
 - Applied family contract `2026-07-15.26` with a custom Pages-root 404 that preserves the Louder
   identity and resolves local assets from missing URLs at any depth.
+- Applied family contract `2026-07-15.27`; the shared primary action asset now supports springing
+  symbols, while Louder's current text-only Download action remains unchanged.
