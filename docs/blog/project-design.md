@@ -14,16 +14,17 @@ Do not replace the icon with a generic audio symbol. Do not fake a glass treatme
 
 ## Accent, palette, and type
 
-The Website uses the family light/dark palettes with local Inconsolata fonts. Louder's light accent
-pair is `#1f3df2` / `#5b6dff`; its dark pair is `#89b4fa` / `#b4befe`. The blue accent is used for
-links, primary actions, interactive emphasis, and the current-Website outline.
+The Website uses the family light/dark palettes with local Inconsolata as the default and locally
+stored JetBrains Mono as the URL-selected alternative. Louder's light accent pair is `#1f3df2` /
+`#5b6dff`; its dark pair is `#89b4fa` / `#b4befe`. The blue accent is used for links, primary
+actions, interactive emphasis, and the current-Website outline.
 
 Preserve the blue accent pairs unless the app identity changes. Louder's UI screenshots can use
 their own product colors; the Website shell should stay quiet around them.
 
 ## Family contract
 
-Family contract version applied: `2026-07-14.18`.
+Family contract version applied: `2026-07-15.25`.
 
 Local family decisions:
 
@@ -31,7 +32,8 @@ Local family decisions:
 - Keep external links only for GitHub releases, commit references, credits, license, and contact links.
 - Keep `#posts` on the home page as the changelog migration key.
 - Follow the operating-system appearance until a family theme choice is supplied by URL or storage.
-- Keep the temporary footer accent picker page-local; it must not rewrite Louder's recorded accent pairs.
+- Keep only the family font and light/dark controls in the footer. Custom palettes are a non-app
+  family feature; Louder always uses its recorded blue Website palette.
 - Deliberately omit the family primary feature grid; Bernd chose Presets as Louder's only product module.
 
 ## Hero story and media rationale
@@ -117,3 +119,12 @@ The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the
   inheriting the larger default `main` size.
 - Kept Presets visually headingless, moved its label into the lead sentence, and removed the
   interaction-instruction sentence.
+
+2026-07-15:
+
+- Applied family contract `2026-07-15.25`.
+- Added the fully local JetBrains Mono variable font and URL-driven whole-page font switching.
+- Kept Louder's project-owned blue light and dark palettes; the app Website ignores custom palette
+  parameters and omits the non-app palette picker.
+- Refreshed the canonical family typography, header, footer, theme, and action assets without
+  changing product copy, screenshots, Presets content, changelog prose, or carousel behavior.

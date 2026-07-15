@@ -2,11 +2,29 @@
   Canonical shared header CSS.
   The host owns palette values and appearance selection. Define these tokens for every supported
   dark, light, or OS-selected mode: --theme-base, --theme-surface0, --theme-text,
-  --theme-body-rgb, --theme-link, --theme-hover, and --theme-accent. Also define the fixed family
-  family metric tokens when present. Fallbacks below are the contract defaults.
+  --theme-body-rgb, --theme-link, --theme-hover, and --theme-accent.
 */
+:root {
+  --family-content-width: 800px;
+  --family-layout-inset: 20px;
+  --family-layout-inset-compact: 16px;
+  --family-header-padding-y: .7rem;
+  --family-header-gap: 1rem;
+  --family-project-icon-size: 1.4rem;
+  --family-project-link-size: 2rem;
+  --family-project-link-radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  padding-top: 0;
+  max-width: var(--family-content-width);
+  margin: 0 auto;
+  padding: 0 var(--family-layout-inset) 20px;
 }
 
 .skip-link {
@@ -18,7 +36,7 @@ body {
   color: var(--theme-base);
   background: var(--theme-accent);
   border-radius: 7px;
-  font-weight: 700;
+  font-weight: var(--family-weight-bold, 700);
   transform: translateY(-180%);
 }
 .skip-link:focus { transform: none; }
@@ -102,7 +120,7 @@ body {
 .site-nav a {
   color: rgba(var(--theme-body-rgb), .6);
   font-size: var(--family-nav-font-size, 1rem);
-  font-weight: 400;
+  font-weight: var(--family-weight-regular, 400);
   line-height: var(--family-nav-line-height, 1);
   text-decoration: none;
 }
@@ -120,9 +138,12 @@ body {
 }
 
 @media (max-width: 720px) {
+  body {
+    padding: 0 var(--family-layout-inset-compact) 16px;
+  }
+
   .topbar-inner {
-    padding: var(--family-header-padding-y, .7rem)
-      var(--family-layout-inset-compact, 16px);
+    padding: var(--family-header-padding-y) var(--family-layout-inset-compact);
   }
   .site-nav { gap: .75rem; }
 }

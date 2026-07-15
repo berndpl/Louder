@@ -27,7 +27,8 @@
 }
 
 .theme-toggle,
-.accent-toggle {
+.accent-toggle,
+.font-toggle {
   flex: 0 0 auto;
   padding: .2rem;
   color: var(--theme-overlay0);
@@ -37,6 +38,14 @@
   cursor: pointer;
   line-height: 0;
   transition: color .25s ease;
+}
+
+.font-toggle {
+  width: 1.65rem;
+  height: 1.65rem;
+  font-size: .72rem;
+  font-weight: var(--family-weight-bold, 700);
+  line-height: 1;
 }
 
 .accent-toggle {
@@ -56,12 +65,15 @@
 .theme-toggle:hover,
 .theme-toggle:focus-visible,
 .accent-toggle:hover,
-.accent-toggle:focus-visible {
+.accent-toggle:focus-visible,
+.font-toggle:hover,
+.font-toggle:focus-visible {
   color: var(--theme-text);
 }
 
 .theme-toggle:focus-visible,
-.accent-toggle:focus-visible {
+.accent-toggle:focus-visible,
+.font-toggle:focus-visible {
   outline: 1px solid var(--theme-surface1);
   outline-offset: 3px;
 }
@@ -79,7 +91,7 @@
   bottom: calc(100% + .55rem);
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1.65rem);
+  grid-template-columns: repeat(5, 1.65rem);
   gap: .35rem;
   padding: .55rem;
   background: var(--theme-mantle);
@@ -126,7 +138,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .theme-toggle,
-  .accent-toggle {
+  .accent-toggle,
+  .font-toggle {
     transition: none;
   }
 }

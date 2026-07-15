@@ -18,12 +18,34 @@
   src: url("fonts/inconsolata-700.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-latin.woff2") format("woff2");
+}
+
 :root {
-  --family-font: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --family-font-inconsolata: "Inconsolata", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --family-font-jetbrains-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --family-font: var(--family-font-inconsolata);
   --family-body-font-size: 1rem;
   --family-body-line-height: 1.6;
   --family-content-font-size: 1.1rem;
   --family-content-line-height: 1.4;
+  --family-weight-quiet: 400;
+  --family-weight-regular: 400;
+  --family-weight-medium: 500;
+  --family-weight-bold: 700;
+  --family-weight-heavy: 800;
+}
+
+:root[data-font="jetbrains-mono"] {
+  --family-font: var(--family-font-jetbrains-mono);
+  --family-weight-quiet: 300;
+  --family-weight-regular: 450;
+  --family-weight-medium: 550;
 }
 
 body {
@@ -41,7 +63,7 @@ main {
 
 .hero .hero-copy h1 {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: var(--family-weight-bold);
   line-height: 1.15;
 }
 
@@ -65,9 +87,10 @@ main h1,
 main h2,
 main h3,
 main h4,
-main h5 {
+main h5,
+.posts li h2 a {
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: var(--family-weight-regular);
   line-height: 1.4;
 }
 
@@ -79,7 +102,7 @@ article p,
 main p,
 .card p {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: var(--family-weight-medium);
   line-height: 1.4;
 }
 
@@ -109,15 +132,17 @@ footer,
 .thanks summary::before,
 .thanks .lic,
 .thanks details p,
-time {
+time,
+.posts li time,
+.posts li.year-separator h3 {
   font-size: .9rem;
-  font-weight: 400;
+  font-weight: var(--family-weight-quiet);
   line-height: 1.4;
 }
 
 .badge {
   font-size: .6em;
-  font-weight: 400;
+  font-weight: var(--family-weight-quiet);
 }
 
 .action-link.secondary,
@@ -126,14 +151,14 @@ time {
 .node.active,
 .arrow {
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: var(--family-weight-regular);
   line-height: 1.4;
 }
 
 .action-link:not(.secondary),
 .lets-talk-button {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: var(--family-weight-heavy);
   line-height: 1.4;
 }
 
@@ -146,12 +171,12 @@ kbd {
 
 b,
 strong {
-  font-weight: 700;
+  font-weight: var(--family-weight-bold);
 }
 
 .thanks summary a,
 .thanks summary::before {
-  font-weight: 400;
+  font-weight: var(--family-weight-regular);
 }
 
 button,
