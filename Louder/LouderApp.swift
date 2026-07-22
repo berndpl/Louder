@@ -26,6 +26,7 @@ struct LouderApp: App {
             .frame(width: 460)
         }
         .commands {
+            SelfEditCommands()
             CommandGroup(replacing: .appInfo) {
                 Button("About Louder") {
                     BuildInfo.showAboutPanel()

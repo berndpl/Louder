@@ -6,15 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DD6A89C23E287040FD0EB0C9 /* SelfEditCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A878E7C1100C0AC3397E2714 /* SelfEditCommand.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA1100000000000000000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 89B5808E2FDBF4C600A0AA5A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 89B580952FDBF4C600A0AA5A;
+			remoteInfo = Louder;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		89B580962FDBF4C600A0AA5A /* Louder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Louder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A878E7C1100C0AC3397E2714 /* SelfEditCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SelfEditCommand.swift; path = Louder/SelfEditCommand.swift; sourceTree = "<group>"; };
 		AA1100000000000000000001 /* LouderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LouderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8DA0130E81BBC653048F61BC /* Exceptions for "Louder" folder in "Louder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SelfEditCommand.swift,
+			);
+			target = 89B580952FDBF4C600A0AA5A /* Louder */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		89B580982FDBF4C600A0AA5A /* Louder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				8DA0130E81BBC653048F61BC /* Exceptions for "Louder" folder in "Louder" target */,
 			);
 			path = Louder;
 			sourceTree = "<group>";
@@ -52,6 +78,7 @@
 				89B580982FDBF4C600A0AA5A /* Louder */,
 				AA1100000000000000000002 /* LouderTests */,
 				89B580972FDBF4C600A0AA5A /* Products */,
+				A878E7C1100C0AC3397E2714 /* SelfEditCommand.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,24 +136,6 @@
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
-
-/* Begin PBXTargetDependency section */
-		AA1100000000000000000006 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 89B580952FDBF4C600A0AA5A /* Louder */;
-			targetProxy = AA1100000000000000000007 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
-/* Begin PBXContainerItemProxy section */
-		AA1100000000000000000007 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 89B5808E2FDBF4C600A0AA5A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 89B580952FDBF4C600A0AA5A;
-			remoteInfo = Louder;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXProject section */
 		89B5808E2FDBF4C600A0AA5A /* Project object */ = {
@@ -202,6 +211,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD6A89C23E287040FD0EB0C9 /* SelfEditCommand.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,6 +223,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA1100000000000000000006 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 89B580952FDBF4C600A0AA5A /* Louder */;
+			targetProxy = AA1100000000000000000007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		89B5809F2FDBF4C700A0AA5A /* Debug */ = {
