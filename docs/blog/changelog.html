@@ -48,6 +48,23 @@
   </header>
 
   <section class="changelog-entries" aria-label="Complete changelog">
+    <article id="drop-screen-options" class="entry">
+      <div class="date">2026-07-29 · release</div>
+      <h2>The drop window tells you what it is about to do</h2>
+      <p>1.5 (Build 9) moves the decisions that matter onto the first screen. The hint under the drop target is no longer a fixed sentence — it now reads <strong>&ldquo;Drop video to encode, rename and move&rdquo;</strong> and names only the steps that are actually switched on. Hover any verb and it tells you the specifics: which preset will run, the filename you will end up with, the folder the file is headed for.</p>
+      <p>The two file-handling switches that drive that sentence came along with it. A <strong>receipt</strong> button next to the preset menu reveals <em>Move to target folder</em> and <em>Rename file</em> in place, bound to the same preferences as the Files settings tab, so you can change your mind without leaving the window. Renaming only appears next to moving, because relocation is the only path that renames.</p>
+      <p>The preset menu gained a separated top section for the audio-preserving option, now called <strong>Keep Audio</strong> where you pick it, and the signal-chain explainer moved out of the way into the window toolbar. Disclosing the options no longer nudges the controls above them, and the hover detail always has room for its second line.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/5be2b5815ec8999118991c345091c993606c5c4b"><code>5be2b58</code></a>.</p>
+    </article>
+
+    <article id="keep-audio" class="entry">
+      <div class="date">2026-07-10 · release</div>
+      <h2>Keep the original audio, change everything else</h2>
+      <p>1.4 (Build 8) adds a preset that deliberately does nothing to the sound. <strong>Keep Audio</strong> trims, resizes, relocates, and renames a video while stream-copying every source audio track through untouched — no filters, no re-encode, no loudness target. It is the option for footage whose audio is already right, or already finished elsewhere.</p>
+      <p>It stays out of Compare on purpose: the original lane there already <em>is</em> the unprocessed reference, so a second identical lane would say nothing.</p>
+      <p>Commit <a href="https://github.com/berndpl/Louder/commit/4573a219e5075bd2c571829fcc1345e8b11f19e9"><code>4573a21</code></a>.</p>
+    </article>
+
     <article id="appearance-colors" class="entry">
       <div class="date">2026-07-08 · release</div>
       <h2>Pick the colors that tell you how it sounds</h2>

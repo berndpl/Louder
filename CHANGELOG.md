@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5 (Build 9) — 2026-07-29
+
+- Source: `5be2b5815ec8999118991c345091c993606c5c4b`
+- Marketing decision: `minor` — surfaces file-handling configuration directly on the drop screen and replaces the static hint with a dynamic, hoverable description of the work a dropped file will receive, a substantial user-visible workflow change rather than in-place polish.
+- Notarization: Accepted (`f1b3901e-07c9-49c5-85df-84064ba9650b`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.5-build-9-macos-arm64.zip`
+
+### Changes
+
+- Added a **receipt** disclosure on the drop screen that reveals the *Move to target folder* and *Rename file* switches, bound to the same preferences as Settings ▸ Files.
+- Replaced the static drop hint with a dynamic sentence — **"Drop video to encode, rename and move"** — that omits verbs whose option is off and reveals the preset path, resulting filename, or destination folder on hover.
+- Gave the preset menu a separated leading section for the audio-preserving option, relabelled **Keep Audio** in the picker only.
+- Moved the signal-chain info button to the window toolbar's top-right, drawn plain at rest with a hover backing.
+- Fixed the footer height so disclosing options never shifts the picker and the two-line hover detail is never clipped.
+
 ## 1.4 (Build 8) — 2026-07-10
 
 - Source: `4573a219e5075bd2c571829fcc1345e8b11f19e9`
