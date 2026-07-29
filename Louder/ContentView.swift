@@ -98,7 +98,12 @@ struct ContentView: View {
     let comparisonPlayer: ComparisonPlayer
     @State private var isTargeted = false
     @State private var hoveredSeriesID: UUID?
-    @State private var showSignalChainInfo = false
+    /// Whether the idle screen's compact file options are disclosed. View-local
+    /// on purpose: the switches themselves persist, but the screen always opens
+    /// in its calm, collapsed form.
+    @State private var showFileOptions = false
+    /// Which verb of the idle sentence is under the pointer, if any.
+    @State private var hoveredDropActionID: String?
     /// Bumped to (re)play the one-shot drop-beacon animation: on appear, when
     /// the app returns to the foreground, and on a window tap in the idle state.
     @State private var beaconTrigger = 0
@@ -112,16 +117,25 @@ struct ContentView: View {
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
     @AppStorage(OutputResolution.preferenceKey)
     private var outputResolutionRawValue = OutputResolution.persisted.rawValue
+    // The idle screen surfaces these two file-handling switches directly. They
+    // bind to the very same keys as Settings ▸ Files, so both stay in sync and
+    // the next drop picks them up via FileHandling.persisted.
+    @AppStorage(MoveToFolder.preferenceKey) private var moveToFolder = false
+    @AppStorage(RenameFile.preferenceKey) private var renameFile = false
+    // Read-only here, but observed so the idle sentence re-renders the moment
+    // any of them changes in Settings ▸ Files.
+    @AppStorage(TargetFolder.preferenceKey) private var targetFolderPath = ""
+    @AppStorage(RelocationMode.preferenceKey)
+    private var relocationModeRawValue = RelocationMode.move.rawValue
+    @AppStorage(RenameBody.preferenceKey) private var renameBody = ""
+    @AppStorage(AppendDate.preferenceKey) private var appendDate = false
     // Re-render the assessment cards when the indicator palette is switched or
     // cycled, so .positive / .caution / .critical pick up the new colors.
     @AppStorage(IndicatorPalette.storageKey)
     private var indicatorPaletteID = IndicatorPalette.defaultID
 
     private var selectedPreset: ProcessingPreset {
-        let stored = ProcessingPreset(rawValue: selectedPresetRawValue) ?? .gentleBoostDenoise
-        return ProcessingPreset.pickerCases.contains(stored)
-            ? stored
-            : (ProcessingPreset.pickerCases.first ?? .gentleBoostDenoise)
+        ProcessingPreset.selectable(from: selectedPresetRawValue)
     }
 
     private var outputResolution: OutputResolution {
@@ -391,15 +405,29 @@ struct ContentView: View {
                         .padding(.top, 4)
                         .padding(.bottom, 16)
 
+                        // Footer slot: a fixed height sized for its tallest
+                        // state (options disclosed plus a two-line hover
+                        // detail), so the footer can never squeeze the controls
+                        // above it. The summary is pinned to the bottom and the
+                        // file options grow upward into the empty space.
                         VStack(spacing: 0) {
                             Spacer(minLength: 0)
+                            if showFileOptions {
+                                fileOptionsGroup
+                                    .transition(.opacity)
+                                    .padding(.bottom, 12)
+                            }
                             statusDescription
-                            Spacer(minLength: 0)
                         }
-                        .frame(maxHeight: .infinity)
+                        .frame(height: 128, alignment: .bottom)
                     }
-                    // Nudge the whole idle block down slightly for better balance.
-                    .offset(y: 24)
+                    // Reserve room at the bottom so the two-line hover detail
+                    // always clears the dashed drop border. With the footer at a
+                    // fixed height, the illustration above absorbs whatever is
+                    // left over, which keeps the picker and quality control at a
+                    // constant position in every idle state.
+                    .padding(.bottom, 40)
+                    .offset(y: 44)
                 } else {
                     VStack(spacing: 12) {
                         loudnessChart
@@ -544,10 +572,7 @@ struct ContentView: View {
                             preset: completedItem.preset
                         )
                     } else {
-                        Text("Drop videos here or on the Dock icon")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        dropSummary
                     }
                 } else {
                     ForEach(statusNotices) { notice in
@@ -557,6 +582,131 @@ struct ContentView: View {
             }
             .frame(maxWidth: 330)
         }
+    }
+
+    // MARK: - Idle drop summary
+
+    /// One verb in the idle sentence, naming a step a dropped file goes
+    /// through, with the detail revealed on hover.
+    private struct DropAction: Identifiable {
+        let id: String
+        let verb: String
+        let detail: String
+        /// Set when the step is switched on but can't run yet, so the sentence
+        /// flags it instead of quietly promising something that won't happen.
+        var needsAttention = false
+    }
+
+    /// The steps a dropped file will actually go through, in reading order.
+    /// Steps that are switched off are left out entirely, so the sentence only
+    /// ever names what is really going to happen.
+    private var dropActions: [DropAction] {
+        var actions = [DropAction(id: "encode", verb: "encode", detail: encodeDetail)]
+        // Renaming is performed as part of relocation, so it is only promised
+        // when the file is being moved or copied somewhere.
+        if moveToFolder && renameFile {
+            actions.append(DropAction(id: "rename", verb: "rename", detail: renameDetail))
+        }
+        if moveToFolder {
+            actions.append(DropAction(
+                id: "relocate",
+                verb: relocationMode == .move ? "move" : "copy",
+                detail: relocateDetail,
+                needsAttention: targetFolderPath.isEmpty
+            ))
+        }
+        return actions
+    }
+
+    private var relocationMode: RelocationMode {
+        RelocationMode(rawValue: relocationModeRawValue) ?? .move
+    }
+
+    private var encodeDetail: String {
+        let cap = outputResolution.label
+        return "\(processingPathDescription). Video taller than \(cap) is downscaled to "
+            + "\(cap); anything smaller is copied untouched."
+    }
+
+    private var renameDetail: String {
+        let trimmed = renameBody.trimmingCharacters(in: .whitespacesAndNewlines)
+        let dateSuffix = appendDate ? " \(AppendDate.formatter.string(from: Date()))" : ""
+        guard !trimmed.isEmpty else {
+            return appendDate
+                ? "Keeps each file's own name and appends its recording date"
+                : "Keeps each file's own name — set one in Settings ▸ Files"
+        }
+        return "Names the file “\(trimmed)\(dateSuffix)”"
+    }
+
+    private var relocateDetail: String {
+        guard !targetFolderPath.isEmpty else {
+            return "No target folder chosen yet — pick one in Settings ▸ Files"
+        }
+        let folder = (targetFolderPath as NSString).abbreviatingWithTildeInPath
+        return relocationMode == .move
+            ? "Moves the file into \(folder)"
+            : "Copies the file into \(folder), leaving the original where it is"
+    }
+
+    /// The idle hint, written as a sentence that names exactly what will happen
+    /// to a dropped file. Hovering a verb explains that step underneath.
+    private var dropSummary: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 0) {
+                Text("Drop video to ")
+                ForEach(Array(dropActions.enumerated()), id: \.element.id) { index, action in
+                    Text(joiner(before: index))
+                    dropVerb(action)
+                }
+            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
+
+            // Height is reserved so revealing a detail never nudges the layout.
+            // An empty string collapses the reservation, so a space stands in
+            // for the resting state.
+            Text(dropDetail.isEmpty ? " " : dropDetail)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2, reservesSpace: true)
+                .frame(maxWidth: 300)
+                .animation(.easeInOut(duration: 0.15), value: dropDetail)
+        }
+    }
+
+    /// Detail line: the hovered step's explanation, blank at rest.
+    private var dropDetail: String {
+        guard let hoveredDropActionID,
+              let action = dropActions.first(where: { $0.id == hoveredDropActionID }) else {
+            return ""
+        }
+        return action.detail
+    }
+
+    private func joiner(before index: Int) -> String {
+        guard index > 0 else { return "" }
+        return index == dropActions.count - 1 ? " and " : ", "
+    }
+
+    private func dropVerb(_ action: DropAction) -> some View {
+        let isHovered = hoveredDropActionID == action.id
+        let tint: Color = action.needsAttention ? .caution : (isHovered ? .accentColor : .primary)
+        return Text(action.verb)
+            .fontWeight(.medium)
+            .foregroundStyle(tint)
+            .underline(isHovered, pattern: .dot)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                if hovering {
+                    hoveredDropActionID = action.id
+                } else if hoveredDropActionID == action.id {
+                    hoveredDropActionID = nil
+                }
+            }
+            .help(action.detail)
+            .accessibilityLabel("\(action.verb): \(action.detail)")
     }
 
     /// Seconds of silence trimmed for the currently focused source, if any.
@@ -746,7 +896,13 @@ struct ContentView: View {
 
     private var processingControls: some View {
         Picker("Preset", selection: processingSelection) {
-            ForEach(ProcessingPreset.pickerCases) { preset in
+            // "Keep Audio" stands apart: it is the only option that leaves the
+            // audio alone, so it gets its own section above the enhancements.
+            ForEach(ProcessingPreset.pickerCases.filter(\.preservesOriginalAudio)) { preset in
+                Label(preset.pickerTitle, systemImage: preset.iconName).tag(preset.rawValue)
+            }
+            Divider()
+            ForEach(ProcessingPreset.enhancementPickerCases) { preset in
                 Label(preset.pickerTitle, systemImage: preset.iconName).tag(preset.rawValue)
             }
             Divider()
@@ -756,147 +912,89 @@ struct ContentView: View {
         .pickerStyle(.menu)
         .fixedSize()
         .disabled(!queue.isIdle)
-        // Float the info button just to the right of the (centered) dropdown so
-        // it never shifts the dropdown off the window's horizontal center.
+        // Float the file options toggle just to the right of the (centered)
+        // dropdown so it never shifts the dropdown off the window's horizontal
+        // center. It is an idle-only affordance; the signal-chain info now
+        // lives permanently in the window's toolbar.
         .overlay(alignment: .trailing) {
-            Button {
-                showSignalChainInfo = true
-            } label: {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 14))
-            }
-            .buttonStyle(.borderless)
-            .help("Show the signal chain applied for this preset")
-            .popover(isPresented: $showSignalChainInfo, arrowEdge: .bottom) {
-                signalChainInfo
-            }
-            .offset(x: 28)
-        }
-    }
-
-    /// Popover content: a little schematic of connected stompboxes describing the
-    /// signal chain the voice passes through for the current selection, plus a
-    /// per-step breakdown of the model and parameters applied. In Compare mode
-    /// every preset's chain is listed.
-    @ViewBuilder
-    private var signalChainInfo: some View {
-        if queue.compareMode {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ForEach(ProcessingPreset.comparePresets) { preset in
-                        VStack(alignment: .leading, spacing: 10) {
-                            Label(preset.title, systemImage: preset.iconName)
-                                .font(.subheadline.weight(.semibold))
-                            signalChainRow(for: preset)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                            signalChainDetails(for: preset)
-                        }
-                        if preset != ProcessingPreset.comparePresets.last {
-                            Divider()
-                        }
-                    }
-                }
-                .padding(18)
-            }
-            .frame(width: 380, height: 460)
-        } else {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    signalChainRow(for: selectedPreset)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    Divider()
-                    signalChainDetails(for: selectedPreset)
-                }
-                .padding(18)
-            }
-            .frame(width: 360)
-            .frame(maxHeight: 520)
-        }
-    }
-
-    /// Per-step breakdown: icon, step name, and the model/parameters it applies.
-    private func signalChainDetails(for preset: ProcessingPreset) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(preset.signalChain.enumerated()), id: \.element.id) { index, step in
-                HStack(alignment: .top, spacing: 9) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.accentColor.opacity(0.14))
-                        Image(systemName: step.systemImage)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .frame(width: 22, height: 22)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(index + 1). \(step.name)")
-                            .font(.subheadline.weight(.semibold))
-                        Text(step.detail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if !step.docs.isEmpty {
-                            HStack(spacing: 12) {
-                                ForEach(step.docs) { doc in
-                                    Link(destination: doc.url) {
-                                        HStack(spacing: 3) {
-                                            Image(systemName: "arrow.up.right.square")
-                                            Text(doc.title)
-                                        }
-                                        .font(.caption2.weight(.medium))
-                                    }
-                                }
-                            }
-                            .padding(.top, 1)
-                        }
-                    }
-                }
+            if isInitialState {
+                fileOptionsButton
+                    .offset(x: 28)
             }
         }
     }
 
-    /// A horizontal run of pedals connected by a cable, with short in/out stubs
-    /// at each end to suggest signal flow.
-    private func signalChainRow(for preset: ProcessingPreset) -> some View {
-        let steps = preset.signalChain
-        return HStack(alignment: .top, spacing: 0) {
-            signalCable
-            ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
-                if index > 0 { signalCable }
-                stompbox(step)
+    /// Discloses the compact file options on the idle screen. Filled while open
+    /// so the button reads as an active toggle rather than a one-shot action.
+    private var fileOptionsButton: some View {
+        Button {
+            withAnimation(.snappy(duration: 0.22)) {
+                showFileOptions.toggle()
             }
-            signalCable
+        } label: {
+            Image(systemName: showFileOptions ? "receipt.fill" : "receipt")
+                .font(.system(size: 14))
+                .foregroundStyle(showFileOptions ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
         }
-        .padding(.vertical, 2)
+        .buttonStyle(.borderless)
+        .help(showFileOptions ? "Hide file options" : "Show file options")
+        .accessibilityLabel("File options")
+        .accessibilityValue(showFileOptions ? "Shown" : "Hidden")
+        .accessibilityHint("Shows the move and rename options applied to dropped files")
     }
 
-    /// A short length of patch cable, vertically aligned to a 44pt pedal's center.
-    private var signalCable: some View {
-        Rectangle()
-            .fill(Color.secondary.opacity(0.45))
-            .frame(width: 12, height: 2)
-            .padding(.top, 21)
+    /// The two file-handling switches the idle screen exposes, as a single
+    /// grouped pair of cells. Everything else (target folder, naming details,
+    /// original handling) stays in Settings ▸ Files.
+    private var fileOptionsGroup: some View {
+        VStack(spacing: 0) {
+            fileOptionCell(
+                "Move to target folder",
+                systemImage: "arrow.forward.folder",
+                isOn: $moveToFolder,
+                help: "Relocates each dropped file into the target folder chosen in Settings ▸ Files."
+            )
+            Divider()
+                .padding(.leading, 34)
+            fileOptionCell(
+                "Rename file",
+                systemImage: "character.cursor.ibeam",
+                isOn: $renameFile,
+                help: "Renames each file to the convention set in Settings ▸ Files. Applies while moving to the target folder."
+            )
+        }
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.separator, lineWidth: 0.5)
+        )
+        .frame(width: 260)
     }
 
-    private func stompbox(_ step: SignalStep) -> some View {
-        VStack(spacing: 5) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(Color.accentColor.opacity(0.14))
-                RoundedRectangle(cornerRadius: 9)
-                    .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
-                Image(systemName: step.systemImage)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
-            }
-            .frame(width: 44, height: 44)
-            Text(step.name)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .frame(width: 58)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+    private func fileOptionCell(
+        _ title: String,
+        systemImage: String,
+        isOn: Binding<Bool>,
+        help: String
+    ) -> some View {
+        // Built as an explicit row so both cells share one leading text column
+        // and one trailing switch column, instead of each hugging its own width.
+        HStack(spacing: 8) {
+            Label(title, systemImage: systemImage)
+                .font(.callout)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Toggle(title, isOn: isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.mini)
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .contentShape(Rectangle())
+        .help(help)
     }
+
 
     /// True before any file has been processed — the idle drop screen. The
     /// output-quality control only appears here so it reads as a global setting.

@@ -35,9 +35,22 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
 
     static let preferenceKey = "processingPreset"
 
-    /// Presets offered in the menu picker.
+    /// Presets offered in the menu picker, in display order.
     static var pickerCases: [ProcessingPreset] {
         [.untouched, .gentleBoostDenoise, .studioBooth, .focus, .clean]
+    }
+
+    /// The enhancement presets, i.e. every picker case except the
+    /// audio-preserving one, which the menu shows in its own leading section.
+    static var enhancementPickerCases: [ProcessingPreset] {
+        pickerCases.filter { !$0.preservesOriginalAudio }
+    }
+
+    /// Clamps a stored raw value onto the presets the picker actually offers,
+    /// so a retired preset left in defaults never selects something unreachable.
+    static func selectable(from rawValue: String) -> ProcessingPreset {
+        let stored = ProcessingPreset(rawValue: rawValue) ?? .gentleBoostDenoise
+        return pickerCases.contains(stored) ? stored : (pickerCases.first ?? .gentleBoostDenoise)
     }
 
     /// Audio-enhancement presets generated when Compare fans out, in display
@@ -61,8 +74,15 @@ enum ProcessingPreset: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Label shown in the menu picker (matches `title`).
-    var pickerTitle: String { title }
+    /// Label shown in the menu picker. Deliberately diverges from `title` for
+    /// `.untouched`: the menu says what the option does for the user, while
+    /// `title` keeps naming generated files and status text.
+    var pickerTitle: String {
+        switch self {
+        case .untouched: "Keep Audio"
+        default: title
+        }
+    }
 
     /// One-line description of the processing path applied for this option,
     /// shown as a subtitle under the dropdown.

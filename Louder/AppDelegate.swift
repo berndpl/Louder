@@ -5,6 +5,7 @@ import UserNotifications
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSWindowDelegate {
     private static let resetItemIdentifier = NSToolbarItem.Identifier("Louder.Reset")
+    private static let infoItemIdentifier = NSToolbarItem.Identifier("Louder.SignalChainInfo")
 
     let queue = DropQueue()
     let comparisonPlayer = ComparisonPlayer()
@@ -150,11 +151,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, Self.resetItemIdentifier]
+        [.flexibleSpace, Self.infoItemIdentifier, Self.resetItemIdentifier]
     }
 
+    // The info item is permanent and leads the trailing group; Reset is inserted
+    // after it once a batch can be reset.
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace]
+        [.flexibleSpace, Self.infoItemIdentifier]
     }
 
     func toolbar(
@@ -163,6 +166,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         switch itemIdentifier {
+        case Self.infoItemIdentifier:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.label = "Signal chain"
+            item.paletteLabel = "Signal chain"
+            item.toolTip = "Show the signal chain applied for this preset"
+            item.autovalidates = false
+            // The hosted button draws its own (hover-only) backing, so the
+            // toolbar must not add its standard item background behind it.
+            item.isBordered = false
+            let button = NSHostingView(rootView: SignalChainInfoToolbarButton(queue: queue))
+            button.translatesAutoresizingMaskIntoConstraints = false
+            item.view = button
+            item.isEnabled = true
+            return item
+
         case Self.resetItemIdentifier:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.label = "Reset"

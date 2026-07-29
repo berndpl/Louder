@@ -211,6 +211,27 @@ final class FileHandlingSafetyTests: XCTestCase {
         XCTAssertTrue(ProcessingPreset.untouched.audioStages.isEmpty)
     }
 
+    /// The audio-preserving option leads the menu in its own section, labelled
+    /// for what it does. Its internal name must not follow the picker label,
+    /// because `title` still names generated files and status text.
+    func testKeepAudioIsPickerOnlyLabelAndLeadsTheMenu() {
+        XCTAssertEqual(ProcessingPreset.pickerCases.first, .untouched)
+        XCTAssertEqual(ProcessingPreset.untouched.pickerTitle, "Keep Audio")
+        XCTAssertEqual(ProcessingPreset.untouched.title, "Untouched")
+        XCTAssertEqual(ProcessingPreset.untouched.fileSuffix, "Untouched")
+    }
+
+    func testEnhancementPickerCasesExcludeOnlyTheAudioPreservingPreset() {
+        XCTAssertEqual(
+            ProcessingPreset.enhancementPickerCases,
+            ProcessingPreset.pickerCases.filter { $0 != .untouched })
+        XCTAssertFalse(ProcessingPreset.enhancementPickerCases.contains(.untouched))
+        // Every enhancement preset keeps its own name in the menu.
+        for preset in ProcessingPreset.enhancementPickerCases {
+            XCTAssertEqual(preset.pickerTitle, preset.title)
+        }
+    }
+
     // MARK: - Utilities
 
     private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {
