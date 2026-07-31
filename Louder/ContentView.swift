@@ -117,17 +117,16 @@ struct ContentView: View {
     private var selectedPresetRawValue = ProcessingPreset.persisted.rawValue
     @AppStorage(OutputResolution.preferenceKey)
     private var outputResolutionRawValue = OutputResolution.persisted.rawValue
-    // The idle screen surfaces these two file-handling switches directly. They
-    // bind to the very same keys as Settings ▸ Files, so both stay in sync and
-    // the next drop picks them up via FileHandling.persisted.
+    // The idle screen surfaces file handling directly. These bind to the same
+    // keys as Settings ▸ Files, so both stay in sync.
     @AppStorage(MoveToFolder.preferenceKey) private var moveToFolder = false
-    @AppStorage(RenameFile.preferenceKey) private var renameFile = false
+    @AppStorage(FilenameOption.preferenceKey)
+    private var filenameOptionRaw = FilenameOption.persisted.rawValue
     // Read-only here, but observed so the idle sentence re-renders the moment
     // any of them changes in Settings ▸ Files.
     @AppStorage(TargetFolder.preferenceKey) private var targetFolderPath = ""
     @AppStorage(RelocationMode.preferenceKey)
     private var relocationModeRawValue = RelocationMode.move.rawValue
-    @AppStorage(RenameBody.preferenceKey) private var renameBody = ""
     @AppStorage(AppendDate.preferenceKey) private var appendDate = false
     // Re-render the assessment cards when the indicator palette is switched or
     // cycled, so .positive / .caution / .critical pick up the new colors.
@@ -604,7 +603,7 @@ struct ContentView: View {
         var actions = [DropAction(id: "encode", verb: "encode", detail: encodeDetail)]
         // Renaming is performed as part of relocation, so it is only promised
         // when the file is being moved or copied somewhere.
-        if moveToFolder && renameFile {
+        if moveToFolder && filenameOption != .keepFilename {
             actions.append(DropAction(id: "rename", verb: "rename", detail: renameDetail))
         }
         if moveToFolder {
@@ -622,6 +621,17 @@ struct ContentView: View {
         RelocationMode(rawValue: relocationModeRawValue) ?? .move
     }
 
+    private var filenameOption: FilenameOption {
+        FilenameOption(rawValue: filenameOptionRaw) ?? .keepFilename
+    }
+
+    private var filenameOptionSelection: Binding<FilenameOption> {
+        Binding(
+            get: { filenameOption },
+            set: { filenameOptionRaw = $0.rawValue }
+        )
+    }
+
     private var encodeDetail: String {
         let cap = outputResolution.label
         return "\(processingPathDescription). Video taller than \(cap) is downscaled to "
@@ -629,14 +639,8 @@ struct ContentView: View {
     }
 
     private var renameDetail: String {
-        let trimmed = renameBody.trimmingCharacters(in: .whitespacesAndNewlines)
         let dateSuffix = appendDate ? " \(AppendDate.formatter.string(from: Date()))" : ""
-        guard !trimmed.isEmpty else {
-            return appendDate
-                ? "Keeps each file's own name and appends its recording date"
-                : "Keeps each file's own name — set one in Settings ▸ Files"
-        }
-        return "Names the file “\(trimmed)\(dateSuffix)”"
+        return "Names the file “\(filenameOption.renameBody ?? "")\(dateSuffix)”"
     }
 
     private var relocateDetail: String {
@@ -943,9 +947,7 @@ struct ContentView: View {
         .accessibilityHint("Shows the move and rename options applied to dropped files")
     }
 
-    /// The two file-handling switches the idle screen exposes, as a single
-    /// grouped pair of cells. Everything else (target folder, naming details,
-    /// original handling) stays in Settings ▸ Files.
+    /// The compact file handling controls exposed on the idle screen.
     private var fileOptionsGroup: some View {
         VStack(spacing: 0) {
             fileOptionCell(
@@ -956,12 +958,24 @@ struct ContentView: View {
             )
             Divider()
                 .padding(.leading, 34)
-            fileOptionCell(
-                "Rename file",
-                systemImage: "character.cursor.ibeam",
-                isOn: $renameFile,
-                help: "Renames each file to the convention set in Settings ▸ Files. Applies while moving to the target folder."
-            )
+            HStack(spacing: 8) {
+                Label("Filename", systemImage: "character.cursor.ibeam")
+                    .font(.callout)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Picker("Filename", selection: filenameOptionSelection) {
+                    ForEach(FilenameOption.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .controlSize(.small)
+                .fixedSize()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .help("Sets the filename convention used when relocating dropped files.")
         }
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
         .overlay(

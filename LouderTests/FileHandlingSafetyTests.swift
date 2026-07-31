@@ -74,6 +74,16 @@ final class FileHandlingSafetyTests: XCTestCase {
         XCTAssertEqual(moved.lastPathComponent, "MyClip.mov")
     }
 
+    func testFilenameOptionsExposeExpectedNames() {
+        XCTAssertEqual(FilenameOption.allCases.map(\.label), [
+            "Keep filename", "Demo", "Standup", "Exploration"
+        ])
+        XCTAssertNil(FilenameOption.keepFilename.renameBody)
+        XCTAssertEqual(FilenameOption.demo.renameBody, "Demo")
+        XCTAssertEqual(FilenameOption.standup.renameBody, "Standup")
+        XCTAssertEqual(FilenameOption.exploration.renameBody, "Exploration")
+    }
+
     func testCollisionAppendsSourceNameThenCounter() throws {
         let a = try makeSource("a.mov")
         let b = try makeSource("b.mov")

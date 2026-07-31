@@ -442,6 +442,52 @@ enum RenameBody {
     }
 }
 
+/// The filename convention used when relocating a dropped file.
+enum FilenameOption: String, Sendable, CaseIterable, Identifiable {
+    case keepFilename
+    case demo
+    case standup
+    case exploration
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .keepFilename: "Keep filename"
+        case .demo: "Demo"
+        case .standup: "Standup"
+        case .exploration: "Exploration"
+        }
+    }
+
+    var renameBody: String? {
+        switch self {
+        case .keepFilename: nil
+        case .demo: "Demo"
+        case .standup: "Standup"
+        case .exploration: "Exploration"
+        }
+    }
+
+    static let preferenceKey = "filenameOption"
+
+    static var persisted: FilenameOption {
+        if let raw = UserDefaults.standard.string(forKey: preferenceKey),
+           let option = FilenameOption(rawValue: raw) {
+            return option
+        }
+
+        // Migrate the previous rename toggle/body pair when possible.
+        guard RenameFile.persisted else { return .keepFilename }
+        switch RenameBody.persisted.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "demo": return .demo
+        case "standup": return .standup
+        case "exploration": return .exploration
+        default: return .keepFilename
+        }
+    }
+}
+
 /// Whether a `yyMMdd` date derived from the file's recording date is appended
 /// to the renamed filename. Defaults to `false`.
 enum AppendDate {
@@ -475,12 +521,13 @@ struct FileHandling: Sendable {
     var relocates: Bool { moveToFolder && !targetFolderPath.isEmpty }
 
     static var persisted: FileHandling {
-        FileHandling(
+        let filenameOption = FilenameOption.persisted
+        return FileHandling(
             moveToFolder: MoveToFolder.persisted,
             targetFolderPath: TargetFolder.persisted,
             relocationMode: RelocationMode.persisted,
-            renameFile: RenameFile.persisted,
-            renameBody: RenameBody.persisted,
+            renameFile: filenameOption.renameBody != nil,
+            renameBody: filenameOption.renameBody ?? "",
             appendDate: AppendDate.persisted
         )
     }

@@ -8,8 +8,8 @@ struct FilesSettingsView: View {
     @AppStorage(MoveToFolder.preferenceKey) private var moveToFolder = false
     @AppStorage(TargetFolder.preferenceKey) private var targetFolderPath = ""
     @AppStorage(RelocationMode.preferenceKey) private var relocationModeRaw = RelocationMode.move.rawValue
-    @AppStorage(RenameFile.preferenceKey) private var renameFile = false
-    @AppStorage(RenameBody.preferenceKey) private var renameBody = ""
+    @AppStorage(FilenameOption.preferenceKey)
+    private var filenameOptionRaw = FilenameOption.persisted.rawValue
     @AppStorage(AppendDate.preferenceKey) private var appendDate = false
     @AppStorage(RenameOriginal.preferenceKey) private var renameOriginal = true
 
@@ -21,13 +21,20 @@ struct FilesSettingsView: View {
     }
 
     private var previewName: String {
-        let body = renameFile
-            ? (renameBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? "MyRecording"
-                : renameBody.trimmingCharacters(in: .whitespacesAndNewlines))
-            : "MyRecording"
+        let body = filenameOption.renameBody ?? "MyRecording"
         let date = appendDate ? " \(AppendDate.formatter.string(from: Date()))" : ""
         return "\(body)\(date)"
+    }
+
+    private var filenameOption: FilenameOption {
+        FilenameOption(rawValue: filenameOptionRaw) ?? .keepFilename
+    }
+
+    private var filenameOptionSelection: Binding<FilenameOption> {
+        Binding(
+            get: { filenameOption },
+            set: { filenameOptionRaw = $0.rawValue }
+        )
     }
 
     var body: some View {
@@ -58,14 +65,16 @@ struct FilesSettingsView: View {
             }
 
             Section {
-                Toggle("Rename file", isOn: $renameFile)
-                TextField("Body", text: $renameBody, prompt: Text("MyRecording"))
-                    .disabled(!moveToFolder || !renameFile)
+                Picker("Filename", selection: filenameOptionSelection) {
+                    ForEach(FilenameOption.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
 
                 Toggle("Append date", isOn: $appendDate)
                     .disabled(!moveToFolder)
 
-                if moveToFolder && (renameFile || appendDate) {
+                if moveToFolder && (filenameOption != .keepFilename || appendDate) {
                     LabeledContent("Preview", value: previewName)
                         .foregroundStyle(.secondary)
                 }
