@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5 (Build 10) — 2026-07-31
+
+- Source: `5ec07596dc3eb197df4e3c69f394a95f684e5680`
+- Marketing decision: `unchanged` — replaces the existing freeform rename controls with a focused filename menu shared by the drop screen and Settings, refining the file-options workflow introduced in 1.5 rather than adding a separate product capability.
+- Notarization: Accepted (`2fdcb8a5-b0af-43c4-ba3b-73c71e93eee3`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.5-build-10-macos-arm64.zip`
+
+### Changes
+
+- Added a synchronized **Filename** menu to the drop-screen file options and Settings ▸ Files.
+- Added the filename choices **Keep filename**, **Demo**, **Standup**, and **Exploration**.
+- Migrated matching values from the previous rename toggle and freeform filename body.
+
 ## 1.5 (Build 9) — 2026-07-29
 
 - Source: `5be2b5815ec8999118991c345091c993606c5c4b`
