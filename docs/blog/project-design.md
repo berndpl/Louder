@@ -8,7 +8,7 @@ Audience: people who make quick demos, screen recordings, or internal video asse
 
 ## App icon source and treatment
 
-The Website uses the real Louder app icon from `docs/blog/img/icon.png`, derived from the project app icon assets (`AppIcon.png` / `AppIcon.icon`). The icon is a leaf mark and should stay tied to Louder's "organic cleanup" identity.
+The Website uses the real Louder app icon from `docs/blog/img/icon.png`, derived from the project app icon assets (`AppIcon.png` / `AppIcon.icon`). Its mark pairs intersecting blue and magenta semicircles over a dot grid.
 
 Do not replace the icon with a generic audio symbol. Do not fake a glass treatment for the Website. Favicons are generated from the same local icon asset.
 
@@ -47,17 +47,18 @@ Local family decisions:
 
 The hero story is practical and direct: a janky screen recording becomes a clear, shareable asset after one drag-and-drop action. Keep the copy centered on the result, not on audio-engineering detail.
 
-Hero media is a three-state real screenshot carousel:
+Hero media is a two-state real screenshot carousel:
 
 - `img/hero-drop.png` shows the initial drop state.
-- `img/hero-studio.png` shows the processing controls.
-- `img/hero-compare.png` shows comparison before choosing a keeper.
+- `img/hero-compare.png` shows an explicitly selected result with Keep Original and Pick This.
+
+The short description carries the final step: listen, then choose the version to keep.
 
 Do not refresh product screenshots from this family-apply flow; `project-site-update` owns screenshot refreshes.
 
 ## Section hierarchy
 
-- Hero: product promise, icon, one Download action, and the three-state screenshot carousel.
+- Hero: product promise, icon, one Download action, and the two-state screenshot carousel.
 - Presets: the interactive local-processing module is the sole product section after the hero.
 - Recent changes: three compact home-page links under `#posts`, with complete prose on `changelog.html`.
 - Thank you: compact credits for the local audio, font, icon, and Swift ecosystem.
@@ -67,12 +68,28 @@ Do not refresh product screenshots from this family-apply flow; `project-site-up
 Current Website screenshots are real project images stored under `docs/blog/img/`:
 
 - `hero-drop.png`
-- `hero-studio.png`
 - `hero-compare.png`
 - `og.png`
 - `icon.png`
 
-The hero screenshot aspect ratio is `1144 / 1004` and is mirrored in CSS for the carousel and thumbnails.
+The hero screenshot aspect ratio is `920 / 856` and is mirrored in CSS for the carousel.
+Both hero images are real captures of the running macOS app on 2026-10-16. The result uses a
+disposable recording, not a user's recording or personal destination path. The older
+`hero-studio.png` remains a historical asset and is not used in the current carousel.
+
+## Decisions made by project-site-update
+
+2026-10-16:
+
+- Used the 2026-07-31 changelog watermark and the current app changes and README as evidence.
+- Added one workflow entry for Pick This, source-scoped Trash cleanup, Keep Original, the
+  destination-folder link, and native toolbar selection behavior. No release version or commit
+  is claimed for the uncommitted work.
+- Refreshed the hero with the current idle and selected-result captures. Two states tell the
+  drop-to-keeper story without retaining screenshots of obsolete controls.
+- Matched the carousel's image ratio to the new captures; preserved its manual interaction,
+  family shell, palettes, local assets, and Presets-only section hierarchy.
+- Corrected the stale icon description without changing the icon asset.
 
 ## Decisions made by project-site-family-apply
 

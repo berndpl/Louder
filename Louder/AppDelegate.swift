@@ -6,11 +6,15 @@ import UserNotifications
 final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSWindowDelegate {
     private static let resetItemIdentifier = NSToolbarItem.Identifier("Louder.Reset")
     private static let infoItemIdentifier = NSToolbarItem.Identifier("Louder.SignalChainInfo")
+    private static let pickItemIdentifier = NSToolbarItem.Identifier("Louder.PickFile")
+    private static let keepOriginalItemIdentifier = NSToolbarItem.Identifier("Louder.KeepOriginal")
+    private static let keepOriginalPreferenceKey = "keepOriginalWhenPicking"
 
     let queue = DropQueue()
     let comparisonPlayer = ComparisonPlayer()
     private var window: NSWindow?
     private weak var toolbar: NSToolbar?
+    private let signalChainPopover = NSPopover()
     private var keyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -22,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         queue.onStateChange = { [weak self] in self?.updateToolbar() }
         queue.onWillBeginBatch = { [weak self] in self?.comparisonPlayer.stop() }
         queue.onWillUndo = { [weak self] in self?.comparisonPlayer.stop() }
+        comparisonPlayer.onSelectionChange = { [weak self] in self?.updateToolbar() }
         showWindow()
         installPaletteShortcut()
     }
@@ -134,7 +139,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
             newWindow.toolbarStyle = .unifiedCompact
             let toolbar = NSToolbar(identifier: "Louder.MainToolbar")
             toolbar.delegate = self
-            toolbar.displayMode = .labelOnly
+            toolbar.displayMode = .iconOnly
             toolbar.allowsUserCustomization = false
             toolbar.autosavesConfiguration = false
             newWindow.toolbar = toolbar
@@ -151,13 +156,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, Self.infoItemIdentifier, Self.resetItemIdentifier]
+        [.flexibleSpace, Self.keepOriginalItemIdentifier, Self.pickItemIdentifier, Self.infoItemIdentifier, Self.resetItemIdentifier]
     }
 
-    // The info item is permanent and leads the trailing group; Reset is inserted
-    // after it once a batch can be reset.
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, Self.infoItemIdentifier]
+        [Self.infoItemIdentifier, .flexibleSpace]
     }
 
     func toolbar(
@@ -166,18 +169,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         switch itemIdentifier {
+        case Self.keepOriginalItemIdentifier:
+            let item = NSToolbarItemGroup(
+                itemIdentifier: itemIdentifier,
+                titles: ["Keep Original"],
+                selectionMode: .selectAny,
+                labels: nil,
+                target: self,
+                action: #selector(toggleKeepOriginal(_:))
+            )
+            item.label = "Keep Original"
+            item.paletteLabel = "Keep Original"
+            item.toolTip = "Also keep the original recording when picking an enhanced version"
+            item.controlRepresentation = .expanded
+            item.autovalidates = false
+            item.setSelected(keepOriginal, at: 0)
+            return item
+
+        case Self.pickItemIdentifier:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.label = "Pick This"
+            item.paletteLabel = "Pick This"
+            item.title = "Pick This"
+            item.autovalidates = false
+            item.isBordered = true
+            item.style = .prominent
+            item.target = self
+            item.action = #selector(pickFile)
+            return item
+
         case Self.infoItemIdentifier:
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.label = "Signal chain"
             item.paletteLabel = "Signal chain"
             item.toolTip = "Show the signal chain applied for this preset"
             item.autovalidates = false
-            // The hosted button draws its own (hover-only) backing, so the
-            // toolbar must not add its standard item background behind it.
-            item.isBordered = false
-            let button = NSHostingView(rootView: SignalChainInfoToolbarButton(queue: queue))
-            button.translatesAutoresizingMaskIntoConstraints = false
-            item.view = button
+            item.image = NSImage(systemSymbolName: "info.circle", accessibilityDescription: "Signal chain")
+            item.isBordered = true
+            item.target = self
+            item.action = #selector(showSignalChain)
             item.isEnabled = true
             return item
 
@@ -187,22 +217,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
             item.paletteLabel = "Reset"
             item.toolTip = "Reset to the initial state"
             item.autovalidates = false
-            let button = NSHostingView(rootView:
-                Button {
-                    self.resetApp()
-                } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(width: 18, height: 18)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .controlSize(.regular)
-                .accessibilityLabel("Reset to initial state")
-            )
-            button.translatesAutoresizingMaskIntoConstraints = false
-            item.view = button
+            item.image = NSImage(systemSymbolName: "arrow.counterclockwise", accessibilityDescription: "Reset to initial state")
+            item.isBordered = true
+            item.target = self
+            item.action = #selector(resetApp)
             item.isEnabled = true
             return item
 
@@ -241,19 +259,72 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSW
         }
     }
 
+    private var keepOriginal: Bool {
+        UserDefaults.standard.object(forKey: Self.keepOriginalPreferenceKey) as? Bool ?? true
+    }
+
+    @objc private func toggleKeepOriginal(_ sender: NSToolbarItemGroup) {
+        UserDefaults.standard.set(sender.isSelected(at: 0), forKey: Self.keepOriginalPreferenceKey)
+    }
+
+    @objc private func showSignalChain() {
+        guard let item = toolbar?.items.first(where: { $0.itemIdentifier == Self.infoItemIdentifier }) else { return }
+        if signalChainPopover.isShown {
+            signalChainPopover.close()
+            return
+        }
+        signalChainPopover.behavior = .transient
+        signalChainPopover.contentViewController = NSHostingController(
+            rootView: SignalChainInfoPopoverContent(queue: queue)
+        )
+        signalChainPopover.show(relativeTo: item)
+    }
+
+    @objc private func pickFile() {
+        guard let seriesID = comparisonPlayer.activeSeriesID else { return }
+        do {
+            let url = try queue.pickFile(seriesID: seriesID, keepOriginal: keepOriginal)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
     private func updateToolbar() {
         guard let toolbar else { return }
 
-        let resetIndex = toolbar.items.firstIndex(where: {
-            $0.itemIdentifier == Self.resetItemIdentifier
-        })
-        if queue.canReset, resetIndex == nil {
-            toolbar.insertItem(
-                withItemIdentifier: Self.resetItemIdentifier,
-                at: toolbar.items.count
-            )
-        } else if !queue.canReset, let resetIndex {
-            toolbar.removeItem(at: resetIndex)
+        let selected = queue.series.first { $0.id == comparisonPlayer.activeSeriesID }
+        var identifiers = [Self.infoItemIdentifier]
+        if queue.canReset {
+            identifiers += [Self.resetItemIdentifier, Self.keepOriginalItemIdentifier]
         }
+        identifiers.append(.flexibleSpace)
+        if queue.canReset, selected != nil {
+            identifiers.append(Self.pickItemIdentifier)
+        }
+        for (index, identifier) in identifiers.enumerated() {
+            if index < toolbar.items.count, toolbar.items[index].itemIdentifier == identifier {
+                continue
+            }
+            if let currentIndex = toolbar.items.firstIndex(where: { $0.itemIdentifier == identifier }) {
+                toolbar.removeItem(at: currentIndex)
+            }
+            toolbar.insertItem(withItemIdentifier: identifier, at: index)
+        }
+        while toolbar.items.count > identifiers.count {
+            toolbar.removeItem(at: toolbar.items.count - 1)
+        }
+        if let keepOriginalItem = toolbar.items.first(where: {
+            $0.itemIdentifier == Self.keepOriginalItemIdentifier
+        }) as? NSToolbarItemGroup {
+            keepOriginalItem.setSelected(keepOriginal, at: 0)
+        }
+        if let pickItem = toolbar.items.first(where: { $0.itemIdentifier == Self.pickItemIdentifier }) {
+            pickItem.isEnabled = queue.isIdle && selected != nil
+            pickItem.toolTip = selected.map {
+                "Keep \($0.url.lastPathComponent), move the other versions to Trash, and reveal it in Finder"
+            } ?? "Play a version to select the file to keep"
+        }
+
     }
 }

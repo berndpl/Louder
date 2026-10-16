@@ -21,6 +21,7 @@ final class ComparisonPlayer {
     private(set) var duration: Double = 0
     private(set) var state: State = .stopped
     private(set) var errorMessage: String?
+    var onSelectionChange: (() -> Void)?
 
     init() {
         timeObserver = player.addPeriodicTimeObserver(
@@ -82,6 +83,7 @@ final class ComparisonPlayer {
         duration = 0
         state = .stopped
         errorMessage = nil
+        onSelectionChange?()
     }
 
     private func load(_ series: LoudnessSeries, at requestedTime: Double) {
@@ -97,6 +99,7 @@ final class ComparisonPlayer {
         currentTime = 0
         duration = series.metrics.points.last?.time ?? 0
         state = .paused
+        onSelectionChange?()
         observeEnd(of: item)
 
         let target = min(max(requestedTime, 0), max(duration - 0.05, 0))

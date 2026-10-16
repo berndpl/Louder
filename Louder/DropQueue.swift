@@ -160,6 +160,42 @@ final class DropQueue {
         clearToInitialState()
     }
 
+    func pickFile(seriesID: UUID, keepOriginal: Bool) throws -> URL {
+        guard isIdle else {
+            throw LouderError.processingFailed("Wait for processing to finish before picking a file.")
+        }
+        let selection = try FileSelection(seriesID: seriesID, series: series, keepOriginal: keepOriginal)
+        onWillUndo?()
+        do {
+            try selection.apply()
+        } catch {
+            if let cleanupError = error as? FileSelection.CleanupError,
+               !cleanupError.restorationFailures.isEmpty {
+                // A partially restored source can no longer safely be undone or
+                // reprocessed. Other recordings in the batch remain available.
+                finishSelection(selection)
+            }
+            throw error
+        }
+        finishSelection(selection)
+        return selection.selected.url
+    }
+
+    private func finishSelection(_ selection: FileSelection) {
+        let sourceID = selection.selected.sourceID
+        series.removeAll { $0.sourceID == sourceID }
+        items.removeAll { $0.id == sourceID }
+        trimmedSecondsBySource.removeValue(forKey: sourceID)
+        transactionOperations.removeAll(where: selection.contains)
+        relocationOperations.removeAll(where: selection.contains)
+        if series.isEmpty {
+            clearToInitialState()
+        } else {
+            latestTransaction = BatchTransaction(operations: transactionOperations + relocationOperations)
+            onStateChange?()
+        }
+    }
+
     private func clearToInitialState() {
         series = []
         items = []
@@ -286,6 +322,7 @@ final class DropQueue {
                 do {
                     let result = try await Processor.process(
                         next.url,
+                        sourceID: next.id,
                         preset: next.preset,
                         compare: next.compare,
                         addFades: next.addFades,

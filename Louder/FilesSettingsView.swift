@@ -102,16 +102,8 @@ struct FilesSettingsView: View {
     }
 
     private func chooseFolder() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        if !targetFolderPath.isEmpty {
-            panel.directoryURL = URL(fileURLWithPath: (targetFolderPath as NSString).expandingTildeInPath)
-        }
-        if panel.runModal() == .OK, let url = panel.url {
-            targetFolderPath = url.path
+        if let path = TargetFolderPicker.choose(currentPath: targetFolderPath) {
+            targetFolderPath = path
         }
     }
 }

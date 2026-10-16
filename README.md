@@ -42,6 +42,8 @@ Pick **Compare** (the last menu item) to leave the source alone and write one cl
 
 After processing, the window stays open with compact loudness curves, integrated LUFS, an estimated signal-to-noise ratio, and a mode-aware **Reset**. Click any curve to hear that version; switching keeps the current timestamp for instant A/B. Reset returns you to the drop screen — in Compare it clears every generated variant; on a single file it keeps the louder result and asks whether to keep or delete the original.
 
+To finish with a keeper, play a version and click **Pick This** at the trailing edge of the toolbar. Tap outside a filename or waveform to stop playback and deselect it; **Pick This** stays hidden until a version is selected again. Louder reveals the picked file in Finder and moves the other versions of that recording to Trash. **Keep Original** (on by default and remembered), alongside the other leading toolbar controls, also retains the untouched recording; turn it off to discard that original too. Picking the original always keeps it. Other recordings in the batch and unrelated files in the folder are left alone.
+
 ## Presets
 
 Pick one once. Enhancement presets clean the voice differently, then bring it to a consistent **−16 LUFS** (EBU R128), encoded as 48 kHz AAC-LC. **Untouched** skips audio processing entirely. The **ⓘ** button beside the menu opens a schematic signal chain showing the exact models and parameters behind the selected preset.
@@ -62,6 +64,8 @@ A small **4K / 1080p** control on the drop screen sets a maximum output height (
 - A recording **above** the cap is downscaled and re-encoded to broadly-compatible **H.264 8-bit 4:2:0** (CRF 18, `veryfast`), preserving aspect ratio.
 
 Whenever the video is actually re-encoded — by a downscale or a silence trim — a **Size** card shows the file-size change (e.g. `120 MB → 66 MB`); in a Compare batch the smallest variant is starred.
+
+Open the file options beside the preset menu and click the **folder name** to see the full destination path, show it in Finder, or choose a different folder. If none is selected, the link reads **target folder**. The destination is shared with **Settings > Files** and remembered between launches; the move switch remains independent.
 
 ## Playback compatibility
 

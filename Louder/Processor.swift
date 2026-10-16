@@ -702,6 +702,7 @@ struct TrimPlan: Sendable {
 enum Processor {
     static func process(
         _ url: URL,
+        sourceID: UUID = UUID(),
         preset: ProcessingPreset,
         compare: Bool,
         addFades: Bool,
@@ -755,7 +756,6 @@ enum Processor {
         }
 
         let duration = await FFmpeg.audioDuration(of: url)
-        let sourceID = UUID()
         onProgress("Measuring original audio…")
         let originalMetrics = try await FFmpeg.audioMetrics(of: url)
         let originalSeries = LoudnessSeries(

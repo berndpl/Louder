@@ -133,47 +133,15 @@ struct SignalChainInfoView: View {
     }
 }
 
-/// Toolbar accessory that opens the signal-chain explainer for whatever is
-/// currently selected. It reads the preset straight from defaults and the
-/// Compare flag from the queue, so the AppKit toolbar can host it without
-/// reaching into `ContentView`.
-struct SignalChainInfoToolbarButton: View {
+/// Reads the current preset and Compare mode while the native toolbar popover is open.
+struct SignalChainInfoPopoverContent: View {
     let queue: DropQueue
     @AppStorage(ProcessingPreset.preferenceKey)
     private var presetRawValue = ProcessingPreset.persisted.rawValue
-    @State private var isPresented = false
-    @State private var isHovering = false
-
     var body: some View {
-        Button {
-            isPresented = true
-        } label: {
-            Image(systemName: "info.circle")
-                .font(.system(size: 15, weight: .medium))
-                .frame(width: 22, height: 22)
-                // Plain by default; the usual toolbar backing is drawn only
-                // while the pointer is over the button or the popover is open.
-                .background {
-                    Circle()
-                        .fill(Color.primary.opacity(0.09))
-                        .opacity(isHovering || isPresented ? 1 : 0)
-                }
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.12)) {
-                isHovering = hovering
-            }
-        }
-        .help("Show the signal chain applied for this preset")
-        .accessibilityLabel("Signal chain")
-        .accessibilityHint("Shows the processing applied for the current preset")
-        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
-            SignalChainInfoView(
-                compareMode: queue.compareMode,
-                preset: ProcessingPreset.selectable(from: presetRawValue)
-            )
-        }
+        SignalChainInfoView(
+            compareMode: queue.compareMode,
+            preset: ProcessingPreset.selectable(from: presetRawValue)
+        )
     }
 }

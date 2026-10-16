@@ -10,6 +10,7 @@ struct CompactWaveformView: View {
     let playbackProgress: Double
     let onHover: (UUID?) -> Void
     let onSelect: (LoudnessSeries) -> Void
+    let onDeselect: () -> Void
 
     /// 0 = true loudness contours (undistorted glance view); 1 = fully spread
     /// into separate lanes so overlapping lines stay individually tappable.
@@ -56,6 +57,8 @@ struct CompactWaveformView: View {
                     .onEnded { value in
                         if let curve = nearestCurve(to: value.location, curves: hitCurves) {
                             onSelect(curve.series)
+                        } else {
+                            onDeselect()
                         }
                     }
             )

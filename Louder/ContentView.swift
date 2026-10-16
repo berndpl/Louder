@@ -108,7 +108,6 @@ struct ContentView: View {
     /// the app returns to the foreground, and on a window tap in the idle state.
     @State private var beaconTrigger = 0
     @State private var filenameHoveredSeriesID: UUID?
-    @State private var selectedVersionID: UUID?
     /// Snapshot of the external toolchain (ffmpeg/ffprobe/Homebrew). Re-checked
     /// on launch and whenever the app returns to the foreground, so installing
     /// the tools in Terminal dismisses the setup card without a relaunch.
@@ -122,8 +121,6 @@ struct ContentView: View {
     @AppStorage(MoveToFolder.preferenceKey) private var moveToFolder = false
     @AppStorage(FilenameOption.preferenceKey)
     private var filenameOptionRaw = FilenameOption.persisted.rawValue
-    // Read-only here, but observed so the idle sentence re-renders the moment
-    // any of them changes in Settings ▸ Files.
     @AppStorage(TargetFolder.preferenceKey) private var targetFolderPath = ""
     @AppStorage(RelocationMode.preferenceKey)
     private var relocationModeRawValue = RelocationMode.move.rawValue
@@ -175,10 +172,6 @@ struct ContentView: View {
         }
         if let activeSeriesID = comparisonPlayer.activeSeriesID {
             return queue.series.first { $0.id == activeSeriesID }
-        }
-        if let selectedVersionID,
-           let selected = queue.series.first(where: { $0.id == selectedVersionID }) {
-            return selected
         }
         return queue.series.last { $0.preset == highlightedPreset }
             ?? queue.series.last
@@ -353,9 +346,12 @@ struct ContentView: View {
             .background(.background)
             .ignoresSafeArea(.container, edges: .top)
             .contentShape(Rectangle())
-            // Tapping anywhere in the idle window replays the drop beacon.
             .onTapGesture {
-                if isInitialState { playDropBeacon() }
+                if isInitialState {
+                    playDropBeacon()
+                } else {
+                    deselectFile()
+                }
             }
             .onDrop(of: [.fileURL], isTargeted: $isTargeted, perform: handleDrop)
             .onExitCommand {
@@ -378,6 +374,18 @@ struct ContentView: View {
                     isTargeted ? Color.accentColor : .secondary.opacity(0.3),
                     style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [8])
                 )
+                .mask {
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 32)
+                        LinearGradient(
+                            colors: [.clear, .black],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 32)
+                        Color.black
+                    }
+                }
 
             Group {
                 if isInitialState && !toolchain.isReady {
@@ -475,12 +483,13 @@ struct ContentView: View {
             CompactWaveformView(
                 series: queue.series,
                 highlightedPreset: highlightedPreset,
-                selectedSeriesID: focusedSeries?.id,
+                selectedSeriesID: comparisonPlayer.activeSeriesID,
                 hoveredSeriesID: hoveredSeriesID,
                 activeSeriesID: comparisonPlayer.activeSeriesID,
                 playbackProgress: comparisonPlayer.progress,
                 onHover: { hoveredSeriesID = $0 },
-                onSelect: { comparisonPlayer.toggle($0) }
+                onSelect: { comparisonPlayer.toggle($0) },
+                onDeselect: deselectFile
             )
             .frame(height: 86)
             .padding(.horizontal, 8)
@@ -519,6 +528,12 @@ struct ContentView: View {
     /// outer radius, travel inward at a constant size, and fade out.
     private func playDropBeacon() {
         beaconTrigger += 1
+    }
+
+    private func deselectFile() {
+        comparisonPlayer.stop()
+        hoveredSeriesID = nil
+        filenameHoveredSeriesID = nil
     }
 
     /// Re-evaluates the external toolchain. Called from the setup card's
@@ -645,7 +660,7 @@ struct ContentView: View {
 
     private var relocateDetail: String {
         guard !targetFolderPath.isEmpty else {
-            return "No target folder chosen yet — pick one in Settings ▸ Files"
+            return "No target folder chosen yet — click the folder link in the file options to pick one"
         }
         let folder = (targetFolderPath as NSString).abbreviatingWithTildeInPath
         return relocationMode == .move
@@ -781,7 +796,6 @@ struct ContentView: View {
         let iconColor = series.preset?.tint ?? .positive
         return HStack(spacing: 7) {
             Button {
-                selectedVersionID = series.id
                 comparisonPlayer.toggle(series)
             } label: {
                 HStack(spacing: 7) {
@@ -812,7 +826,8 @@ struct ContentView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
         .background(
-            isFocused ? Color.primary.opacity(0.06) : Color.clear,
+            comparisonPlayer.activeSeriesID == series.id || filenameHoveredSeriesID == series.id
+                ? Color.primary.opacity(0.06) : Color.clear,
             in: RoundedRectangle(cornerRadius: 6)
         )
         .contentShape(Rectangle())
@@ -950,12 +965,22 @@ struct ContentView: View {
     /// The compact file handling controls exposed on the idle screen.
     private var fileOptionsGroup: some View {
         VStack(spacing: 0) {
-            fileOptionCell(
-                "Move to target folder",
-                systemImage: "arrow.forward.folder",
-                isOn: $moveToFolder,
-                help: "Relocates each dropped file into the target folder chosen in Settings ▸ Files."
-            )
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.forward.folder")
+                HStack(spacing: 3) {
+                    Text("Move to")
+                    TargetFolderLink(path: $targetFolderPath)
+                }
+                .lineLimit(1)
+                Spacer(minLength: 8)
+                Toggle("Move to target folder", isOn: $moveToFolder)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+            }
+            .font(.callout)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
             Divider()
                 .padding(.leading, 34)
             HStack(spacing: 8) {
@@ -984,31 +1009,6 @@ struct ContentView: View {
         )
         .frame(width: 260)
     }
-
-    private func fileOptionCell(
-        _ title: String,
-        systemImage: String,
-        isOn: Binding<Bool>,
-        help: String
-    ) -> some View {
-        // Built as an explicit row so both cells share one leading text column
-        // and one trailing switch column, instead of each hugging its own width.
-        HStack(spacing: 8) {
-            Label(title, systemImage: systemImage)
-                .font(.callout)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Toggle(title, isOn: isOn)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .contentShape(Rectangle())
-        .help(help)
-    }
-
 
     /// True before any file has been processed — the idle drop screen. The
     /// output-quality control only appears here so it reads as a global setting.
