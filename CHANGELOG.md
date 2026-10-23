@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.6 (Build 11) — 2026-10-16
+
+- Source: `165e03a4e3f717f2e238356708b7ef86b0dd234d`
+- Marketing decision: `minor` — adds an explicit keeper-selection workflow with source-scoped cleanup and a remembered original-retention choice, extending the app beyond processing and comparison.
+- Notarization: Accepted (`a81e3996-cc00-4104-b30c-9c565fd82732`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.6-build-11-macos-arm64.zip`
+
+### Changes
+
+- Added **Pick This** to reveal the selected keeper in Finder and move other versions of that recording to Trash, leaving other recordings and unrelated files alone.
+- Added a remembered **Keep Original** choice, on by default; picking the original always retains it.
+- Made the destination folder name interactive, with its full path, Finder reveal, and a shared folder picker.
+- Moved supporting controls into the native leading toolbar, kept the keeper action trailing, and made empty-space clicks clear selection.
+- Refreshed the Project page with current app captures and the drop-to-keeper workflow.
+
 ## 1.5 (Build 10) — 2026-07-31
 
 - Source: `5ec07596dc3eb197df4e3c69f394a95f684e5680`
