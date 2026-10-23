@@ -42,6 +42,8 @@ Pick **Compare** (the last menu item) to leave the source alone and write one cl
 
 After processing, the window stays open with compact loudness curves, integrated LUFS, an estimated signal-to-noise ratio, and a mode-aware **Reset**. Click any curve to hear that version; switching keeps the current timestamp for instant A/B. Reset returns you to the drop screen — in Compare it clears every generated variant; on a single file it keeps the louder result and asks whether to keep or delete the original.
 
+Once a file is selected, drag the existing playhead dot horizontally along its waveform to move backward or forward in time. Scrubbing pauses playback while you drag, then resumes only if it was playing before; a paused preview stays paused. Clicking a line still selects or pauses that version.
+
 To finish with a keeper, play a version and click **Pick This** at the trailing edge of the toolbar. Tap outside a filename or waveform to stop playback and deselect it; **Pick This** stays hidden until a version is selected again. Louder reveals the picked file in Finder and moves the other versions of that recording to Trash. **Keep Original** (on by default and remembered), alongside the other leading toolbar controls, also retains the untouched recording; turn it off to discard that original too. Picking the original always keeps it. Other recordings in the batch and unrelated files in the folder are left alone.
 
 ## Presets

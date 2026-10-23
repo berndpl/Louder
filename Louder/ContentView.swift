@@ -489,7 +489,10 @@ struct ContentView: View {
                 playbackProgress: comparisonPlayer.progress,
                 onHover: { hoveredSeriesID = $0 },
                 onSelect: { comparisonPlayer.toggle($0) },
-                onDeselect: deselectFile
+                onDeselect: deselectFile,
+                onScrubStart: comparisonPlayer.beginScrubbing,
+                onScrub: { comparisonPlayer.seek(to: $0 * comparisonPlayer.duration) },
+                onScrubEnd: comparisonPlayer.endScrubbing
             )
             .frame(height: 86)
             .padding(.horizontal, 8)

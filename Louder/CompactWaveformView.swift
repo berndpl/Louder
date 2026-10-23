@@ -11,11 +11,15 @@ struct CompactWaveformView: View {
     let onHover: (UUID?) -> Void
     let onSelect: (LoudnessSeries) -> Void
     let onDeselect: () -> Void
+    let onScrubStart: () -> Void
+    let onScrub: (Double) -> Void
+    let onScrubEnd: () -> Void
 
     /// 0 = true loudness contours (undistorted glance view); 1 = fully spread
     /// into separate lanes so overlapping lines stay individually tappable.
     /// Animates in only while the pointer is over the graph.
     @State private var spread: Double = 0
+    @State private var drag: WaveformDrag?
 
     private let plotSize = CGSize(width: 160, height: 58)
 
@@ -39,7 +43,15 @@ struct CompactWaveformView: View {
             .onContinuousHover { phase in
                 switch phase {
                 case .active(let location):
-                    NSCursor.pointingHand.set()
+                    if drag?.didScrub == true {
+                        NSCursor.resizeLeftRight.set()
+                        return
+                    }
+                    if isNearPlayhead(location, in: plotRect, curves: hitCurves) {
+                        NSCursor.resizeLeftRight.set()
+                    } else {
+                        NSCursor.pointingHand.set()
+                    }
                     // Spread the lanes only while the pointer is over the graph
                     // itself, so overlapping lines stay individually pickable.
                     if spread != 1 {
@@ -47,23 +59,58 @@ struct CompactWaveformView: View {
                     }
                     onHover(nearestCurve(to: location, curves: hitCurves)?.series.id)
                 case .ended:
+                    guard drag?.didScrub != true else { return }
                     NSCursor.arrow.set()
                     withAnimation(.easeOut(duration: 0.22)) { spread = 0 }
                     onHover(nil)
                 }
             }
             .gesture(
-                SpatialTapGesture()
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if drag == nil {
+                            drag = WaveformDrag(
+                                seriesID: isNearPlayhead(value.startLocation, in: plotRect, curves: hitCurves)
+                                    ? activeSeriesID : nil
+                            )
+                        }
+                        guard let seriesID = drag?.seriesID, seriesID == activeSeriesID,
+                              drag?.didScrub == true || abs(value.translation.width) >= 2 else { return }
+                        if drag?.didScrub != true {
+                            drag?.didScrub = true
+                            onHover(seriesID)
+                            onScrubStart()
+                        }
+                        NSCursor.resizeLeftRight.set()
+                        onScrub(min(max((value.location.x - plotRect.minX) / plotRect.width, 0), 1))
+                    }
                     .onEnded { value in
-                        if let curve = nearestCurve(to: value.location, curves: hitCurves) {
+                        defer { drag = nil }
+                        if drag?.didScrub == true {
+                            if drag?.seriesID == activeSeriesID {
+                                onScrubEnd()
+                            }
+                            onHover(nil)
+                            if !CGRect(origin: .zero, size: geometry.size).contains(value.location) {
+                                NSCursor.arrow.set()
+                                withAnimation(.easeOut(duration: 0.22)) { spread = 0 }
+                            }
+                        } else if abs(value.translation.width) < 3, abs(value.translation.height) < 3,
+                                  let curve = nearestCurve(to: value.location, curves: hitCurves) {
                             onSelect(curve.series)
-                        } else {
+                        } else if abs(value.translation.width) < 3, abs(value.translation.height) < 3 {
                             onDeselect()
                         }
                     }
             )
         }
         .frame(height: 86)
+        .help("Click a line to preview it. Drag the playhead dot left or right to seek.")
+        .onChange(of: activeSeriesID) { _, _ in drag = nil }
+        .onDisappear {
+            if drag?.didScrub == true { onScrubEnd() }
+            drag = nil
+        }
         .accessibilityRepresentation {
             VStack {
                 ForEach(series) { item in
@@ -76,8 +123,23 @@ struct CompactWaveformView: View {
                             : ""
                     )
                 }
+                if activeSeriesID != nil {
+                    Slider(
+                        value: Binding(get: { playbackProgress }, set: onScrub),
+                        in: 0...1,
+                        onEditingChanged: { editing in
+                            if editing { onScrubStart() } else { onScrubEnd() }
+                        }
+                    )
+                    .accessibilityLabel("Playhead position")
+                }
             }
         }
+    }
+
+    private struct WaveformDrag {
+        let seriesID: UUID?
+        var didScrub = false
     }
 
     private struct Curve {
@@ -177,6 +239,13 @@ struct CompactWaveformView: View {
             .filter { $0.1 <= 16 }
             .min(by: { $0.1 < $1.1 })?
             .0
+    }
+
+    private func isNearPlayhead(_ location: CGPoint, in rect: CGRect, curves: [Curve]) -> Bool {
+        guard let active = curves.first(where: { $0.series.id == activeSeriesID }),
+              let dot = point(on: active.points, progress: playbackProgress) else { return false }
+        // Keep the dot grabbable while the curves animate between contours and lanes.
+        return abs(location.x - dot.x) <= 14 && rect.insetBy(dx: -14, dy: -8).contains(location)
     }
 
     private func distance(from location: CGPoint, to points: [CGPoint]) -> CGFloat {
