@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6 (Build 12) — 2026-10-24
+
+- Source: `f39245bc50fce9f4e61c8b8dd67b1679ad57b14f`
+- Marketing decision: `unchanged` — refines existing export previews with direct playhead scrubbing, without adding a separate processing workflow or preset.
+- Notarization: Accepted (`41693b53-a0c1-4d10-885a-c64858cd137f`)
+- Installed app: `/Applications/Louder.app`
+- Archive: `/Users/berndplontsch/PARALocal/apps/Louder/dist/Louder-1.6-build-12-macos-arm64.zip`
+
+### Changes
+
+- Made the existing waveform dot draggable horizontally to seek backward and forward, without adding a separate visible control.
+- Preserved paused playback while scrubbing and resumed on release only when the preview was previously playing.
+- Kept the scrubbed position when switching preview versions and ignored stale seek completions after switching or stopping.
+- Added accessible playhead adjustment and focused coverage for real playback and native waveform drag/tap events.
+
 ## 1.6 (Build 11) — 2026-10-16
 
 - Source: `165e03a4e3f717f2e238356708b7ef86b0dd234d`
